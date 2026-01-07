@@ -1,0 +1,229 @@
+﻿@model IEnumerable<FastFood.Models.HoaDon>
+
+@{
+    ViewBag.Title = "Quản lý Đơn hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string userRole = Session["staffRole"] as string ?? "Admin";
+    int currentStaffId = Convert.ToInt32(Session["staffId"] ?? 0);
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+        <h6 class="m-0 fw-bold text-primary">Danh sách Đơn hàng (@userRole)</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle" width="100%" cellspacing="0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 80px;">Mã Đơn</th>
+                        <th style="width: 250px;">Thông tin giao hàng</th>
+                        <th>Thời gian</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 180px;">Nhân viên xử lý</th>
+                        <th class="text-center" style="width: 160px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-center">#@item.SoHoaDon</td>
+
+                                <td>
+                                    <div class="fw-bold text-primary">
+                                        <i class="fas fa-user me-1"></i> @(item.KhachHang != null ? item.KhachHang.HoTen : "Khách vãng lai")
+                                    </div>
+                                    <div class="mt-1">
+                                        <a href="tel:@item.SoDienThoaiGiao" class="text-dark text-decoration-none fw-bold">
+                                            <i class="fas fa-phone-alt me-1 text-success"></i> @item.SoDienThoaiGiao
+                                        </a>
+                                    </div>
+                                    <div class="mt-1 small text-muted" style="line-height: 1.3;">
+                                        <i class="fas fa-map-marker-alt me-1 text-danger"></i>
+                                        @(string.IsNullOrEmpty(item.DiaChiGiao) ? "Nhận tại cửa hàng" : item.DiaChiGiao)
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (item.NgayDatHang.HasValue)
+                                    {
+                                        <div>@item.NgayDatHang.Value.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">@item.NgayDatHang.Value.ToString("HH:mm")</small>
+                                    }
+                                </td>
+                                <td class="text-danger fw-bold">@string.Format("{0:N0}", item.TongTien)</td>
+                                <td>
+                                    @if (item.TinhTrang == "Chờ duyệt")
+                                    {<span class="badge bg-warning text-dark rounded-pill px-3 py-2">Chờ duyệt</span> }
+                                    else if (item.TinhTrang == "Đã duyệt")
+                                    { <span class="badge bg-info text-dark rounded-pill px-3 py-2">Đã duyệt (Chờ giao)</span> }
+                                    else if (item.TinhTrang == "Đang giao")
+                                    { <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span> }
+                                    else if (item.TinhTrang == "Hoàn tất")
+                                    { <span class="badge bg-success rounded-pill px-3 py-2">Hoàn tất</span> }
+                                    else
+                                    { <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>}
+                                </td>
+
+                                <td class="small">
+                                    @* 1. Hiển thị người duyệt *@
+                                    @if (item.NhanVien != null)
+                                    {
+                                        <div class="mb-2">
+                                            <small class="text-muted">Duyệt bởi:</small><br />
+                                            <span class="fw-bold text-info">
+                                                <i class="fas fa-user-check me-1"></i> @item.NhanVien.HoTen
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @* 2. Hiển thị người giao *@
+                                    @if (item.NhanVien1 != null)
+                                    {
+                                        <div class="mt-1 pt-1 border-top">
+                                            <small class="text-muted">Giao bởi:</small><br />
+                                            <span class="fw-bold text-success">
+                                                <i class="fas fa-shipping-fast me-1"></i> @item.NhanVien1.HoTen
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @* 3. Chưa có ai *@
+                                    @if (item.NhanVien == null && item.NhanVien1 == null)
+                                    {
+                                        <span class="text-muted fst-italic small">- Chưa có nhân viên -</span>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    <button class="btn btn-info btn-sm me-1 text-white" onclick="viewDetails(@item.MaHoaDon)" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    @* --- LOGIC NV DUYỆT --- *@
+                                    @if (userRole == "NV Duyệt" || userRole == "Admin")
+                                    {
+                                        if (item.TinhTrang == "Chờ duyệt")
+                                        {
+                                            <form action="@Url.Action("ApproveOrder", "Order")" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@item.MaHoaDon" />
+                                                <button type="submit" class="btn btn-success btn-sm" title="Duyệt ngay">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <button class="btn btn-danger btn-sm" onclick="openRejectModal(@item.MaHoaDon)" title="Hủy đơn">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        }
+                                    }
+
+                                    @* --- LOGIC NV GIAO HÀNG --- *@
+                                    @if (userRole == "NV Giao hàng" || userRole == "Admin")
+                                    {
+                                        if (item.TinhTrang == "Đã duyệt")
+                                        {
+                                            <form action="@Url.Action("StartShipping", "Order")" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@item.MaHoaDon" />
+                                                <button type="submit" class="btn btn-primary btn-sm" title="Nhận giao đơn này">
+                                                    <i class="fas fa-shipping-fast"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (item.TinhTrang == "Đang giao" && (item.MaNVGiao == currentStaffId || userRole == "Admin"))
+                                        {
+                                            <form action="@Url.Action("CompleteOrder", "Order")" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@item.MaHoaDon" />
+                                                <button type="submit" class="btn btn-success btn-sm" title="Xác nhận giao thành công">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">Không có đơn hàng nào cần xử lý.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2"></i>Chi tiết đơn hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Từ chối đơn hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="@Url.Action("RejectOrder", "Order")" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="rejectOrderId" />
+                    <div class="mb-3">
+                        <label class="fw-bold form-label">Lý do hủy đơn:</label>
+                        <textarea class="form-control" name="lyDo" rows="3" required placeholder="Ví dụ: Hết nguyên liệu, Khách yêu cầu hủy..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function viewDetails(id) {
+            // Hiển thị modal (jQuery vẫn hoạt động tốt nếu có thư viện)
+            $('#detailsModal').modal('show');
+
+            // Reset spinner loading mỗi khi mở lại modal
+            $('#detailsContent').html('<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>');
+
+            var url = '@Url.Action("Details", "Order")/' + id;
+            $('#detailsContent').load(url, function(response, status, xhr) {
+                if (status == "error") {
+                    $('#detailsContent').html('<div class="alert alert-danger text-center">Lỗi tải dữ liệu: ' + xhr.status + '</div>');
+                }
+            });
+        }
+
+        function openRejectModal(id) {
+            $('#rejectOrderId').val(id);
+            $('#rejectModal').modal('show');
+        }
+    </script>
+}

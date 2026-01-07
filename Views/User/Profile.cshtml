@@ -1,0 +1,413 @@
+﻿@using FastFood.Models
+@model FastFood.Models.KhachHang
+
+@{
+    ViewBag.Title = "Hồ sơ cá nhân";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    var historyList = ViewBag.History as List<HoaDon>;
+}
+
+<style>
+    /* CSS CHO AVATAR */
+    .avatar-wrapper {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+        border-radius: 50%;
+        cursor: pointer;
+        overflow: hidden;
+        border: 4px solid #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        transition: transform 0.3s;
+    }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .avatar-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .avatar-wrapper:hover .avatar-overlay {
+        opacity: 1;
+    }
+
+    /* LAYOUT */
+    .profile-sidebar {
+        background: #fff;
+        border-radius: 15px;
+        padding: 30px 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .profile-content {
+        background: #fff;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        min-height: 500px;
+    }
+
+    /* MENU TABS */
+    .nav-pills .nav-link {
+        color: #555;
+        border-radius: 10px;
+        padding: 12px 20px;
+        margin-bottom: 5px;
+        transition: 0.2s;
+        text-align: left;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+        .nav-pills .nav-link:hover {
+            background-color: #f8f9fa;
+            color: #ffbe33;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: #ffbe33;
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 190, 51, 0.4);
+        }
+
+    /* INPUTS */
+    .form-control-modern {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: all 0.3s;
+    }
+
+        .form-control-modern:focus {
+            border-color: #ffbe33;
+            box-shadow: 0 0 0 0.25rem rgba(255, 190, 51, 0.25);
+        }
+
+        .form-control-modern[readonly] {
+            background-color: #f8f9fa;
+            border: 1px dashed #ced4da;
+            color: #6c757d;
+            cursor: default;
+        }
+
+    /* BUTTON EDIT */
+    .btn-edit-toggle {
+        background: #e9ecef;
+        color: #333;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-edit-toggle:hover, .btn-edit-toggle.active {
+            background: #ffbe33;
+            color: white;
+            transform: rotate(15deg);
+        }
+
+    /* VALIDATION */
+    .validation-feedback {
+        font-size: 0.85rem;
+        margin-top: 5px;
+        font-weight: 500;
+        display: none;
+    }
+
+    .text-valid {
+        color: #198754;
+    }
+
+    .text-invalid {
+        color: #dc3545;
+    }
+
+    /* SweetAlert Tweaks */
+    div:where(.swal2-container.swal2-top-end) {
+        top: 90px !important;
+        right: 20px !important;
+        z-index: 9999;
+    }
+
+    div:where(.swal2-popup.swal2-toast) {
+        padding: 10px 15px !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15) !important;
+    }
+</style>
+
+<section class="layout_padding py-5" style="background-color: #f4f6f9; min-height: 100vh;">
+    <div class="container">
+
+        <input type="hidden" id="successMsg" value="@TempData["SuccessMessage"]" />
+        <input type="hidden" id="errorMsg" value="@TempData["Error"]" />
+
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="profile-sidebar h-100">
+                    @{ string imgPath = string.IsNullOrEmpty(Model.AnhDaiDien) ? "/Images/default-user.png" : "/Images/User/" + Model.AnhDaiDien; }
+                    <div class="mb-3">
+                        <img src="@Url.Content(imgPath)" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit:cover" />
+                    </div>
+                    <h5 class="fw-bold">@Model.HoTen</h5>
+                    <p class="text-muted small">@Model.Email</p>
+                    <hr />
+                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+                        <a class="nav-link active" href="#v-pills-home"><i class="fa fa-user me-2"></i> Thông tin cá nhân</a>
+                        <a class="nav-link" href="#v-pills-security"><i class="fa fa-lock me-2"></i> Đổi mật khẩu</a>
+                        <a class="nav-link" href="#v-pills-history"><i class="fa fa-history me-2"></i> Lịch sử đơn hàng</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="profile-content h-100">
+
+                    @using (Html.BeginForm("UpdateProfile", "User", FormMethod.Post, new { enctype = "multipart/form-data", id = "mainProfileForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="tab-content">
+
+                            <div class="tab-pane fade show active" id="v-pills-home">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 class="mb-0 fw-bold">Thông tin cá nhân</h4>
+                                    <button type="button" class="btn-edit-toggle shadow-sm" id="btnToggleEdit" title="Chỉnh sửa thông tin">
+                                        <i class="fa fa-pencil"></i>
+                                    </button>
+                                </div>
+
+                                <div class="row justify-content-center mb-4">
+                                    <div class="col-12 text-center">
+                                        <div class="avatar-wrapper" id="avatarWrapper" style="pointer-events: none; opacity: 0.9;">
+                                            <img id="previewImg" src="@Url.Content(imgPath)" />
+                                            <div class="avatar-overlay"><i class="fa fa-camera"></i></div>
+                                        </div>
+                                        <input type="file" name="uploadAvatar" id="uploadAvatarInput" hidden accept="image/*" onchange="previewFile(this)" />
+                                        <small class="text-muted mt-2 d-none" id="avatarHint">Click vào ảnh để thay đổi</small>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Họ và tên</label>
+                                        <input type="text" name="HoTen" value="@Model.HoTen" class="form-control form-control-modern profile-input" required readonly />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Số điện thoại</label>
+                                        <input type="text" name="SoDienThoai" value="@Model.SoDienThoai" class="form-control form-control-modern profile-input" readonly />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Tên đăng nhập</label>
+                                        <input type="text" name="TenDangNhap" id="txtUsername" value="@Model.TenDangNhap" class="form-control form-control-modern profile-input" required readonly />
+                                        <div id="usernameFeedback" class="validation-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Email</label>
+                                        <input type="email" name="Email" value="@Model.Email" class="form-control form-control-modern profile-input" required readonly />
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="fw-bold small text-muted form-label">Địa chỉ</label>
+                                        <textarea name="DiaChi" class="form-control form-control-modern profile-input" rows="2" readonly>@Model.DiaChi</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-4" id="saveButtonGroup" style="display:none;">
+                                    <button type="button" class="btn btn-light rounded-pill px-3 me-2 border fw-bold" id="btnCancelEdit">Hủy</button>
+                                    <button type="submit" class="btn btn-warning text-white rounded-pill px-4 shadow-sm fw-bold" id="btnSaveProfile">
+                                        <i class="fa fa-save me-1"></i> Lưu Thay Đổi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="v-pills-security">
+                                <h4 class="mb-4 fw-bold">Bảo mật tài khoản</h4>
+                                <div class="alert alert-warning small border-0 d-flex align-items-center">
+                                    <i class="fa fa-lock me-3"></i> Nhập mật khẩu cũ để đổi mới.
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="fw-bold small text-muted form-label">Mật khẩu hiện tại</label>
+                                        <input type="password" name="MatKhauCu" class="form-control form-control-modern" placeholder="••••••" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Mật khẩu mới</label>
+                                        <input type="password" name="MatKhauMoi" class="form-control form-control-modern" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold small text-muted form-label">Xác nhận</label>
+                                        <input type="password" name="XacNhanMatKhau" class="form-control form-control-modern" />
+                                    </div>
+                                </div>
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">Cập Nhật</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade" id="v-pills-history">
+                            <h4 class="mb-4 fw-bold">Lịch sử đơn hàng</h4>
+                            @if (historyList != null && historyList.Count > 0)
+                            {
+                                foreach (var item in historyList)
+                                {
+                                    // BS5 dùng bg-success thay vì badge-success
+                                    string badgeClass = item.TinhTrang == "Hoàn tất" ? "bg-success" : (item.TinhTrang == "Đã hủy" ? "bg-danger" : "bg-warning text-dark");
+
+                                    <div class="card mb-3 border shadow-sm rounded-3 overflow-hidden">
+                                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold">#@item.SoHoaDon <small class="text-muted ms-2">@item.NgayDatHang.Value.ToString("dd/MM/yyyy")</small></span>
+                                            <span class="badge @badgeClass rounded-pill p-2">@item.TinhTrang</span>
+                                        </div>
+                                        <div class="card-body py-3 d-flex justify-content-between align-items-center">
+                                            <span class="text-danger fw-bold">@string.Format("{0:N0} đ", item.TongTien)</span>
+                                            <a href="@Url.Action("Invoice", "User", new { id = item.MaHoaDon })" class="btn btn-sm btn-outline-info rounded-pill">Chi tiết</a>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-5"><p class="text-muted">Chưa có đơn hàng nào.</p></div>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // 1. CẤU HÌNH TOAST (Thông báo tự tắt 3s)
+        const Toast = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true,
+            didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); }
+        });
+
+        $(document).ready(function () {
+            // 2. HIỆN THÔNG BÁO TỪ SERVER
+            var successMsg = $('#successMsg').val();
+            var errorMsg = $('#errorMsg').val();
+            if (successMsg) Toast.fire({ icon: 'success', title: successMsg });
+            if (errorMsg) Toast.fire({ icon: 'error', title: errorMsg });
+
+            // 3. XỬ LÝ CHUYỂN TAB (FIX LỖI KHÔNG CHUYỂN TAB)
+            $('.nav-pills a').on('click', function (e) {
+                e.preventDefault();
+                // Xóa active cũ
+                $('.nav-pills a').removeClass('active');
+                $(this).addClass('active'); // Active cái mới bấm
+
+                var targetId = $(this).attr('href'); // Lấy id đích: #v-pills-home...
+
+                // Nếu chọn Lịch sử -> Ẩn form chính, Hiện Div Lịch sử
+                if (targetId === '#v-pills-history') {
+                    $('#mainProfileForm').hide();
+                    $('#v-pills-history').addClass('show active');
+                    $('.tab-pane:not(#v-pills-history)').removeClass('show active');
+                }
+                else {
+                    // Nếu chọn Info/Security -> Hiện form chính, Ẩn Div Lịch sử
+                    $('#mainProfileForm').show();
+                    $('#v-pills-history').removeClass('show active');
+
+                    // Kích hoạt tab con bên trong form
+                    $('.tab-pane').removeClass('show active');
+                    $(targetId).addClass('show active');
+                }
+            });
+
+            // 4. CHẾ ĐỘ SỬA
+            $('#btnToggleEdit').click(function () {
+                var btn = $(this);
+                if (!btn.hasClass('active')) {
+                    btn.addClass('active').html('<i class="fa fa-times"></i>');
+                    $('.profile-input').prop('readonly', false);
+                    $('#saveButtonGroup').fadeIn();
+                    $('#avatarWrapper').css({'pointer-events': 'auto', 'opacity': '1'});
+                    $('#avatarHint').removeClass('d-none'); // Hiện dòng chữ
+                } else {
+                    cancelEditMode();
+                }
+            });
+
+            $('#btnCancelEdit').click(function() { cancelEditMode(); });
+
+            function cancelEditMode() {
+                $('#btnToggleEdit').removeClass('active').html('<i class="fa fa-pencil"></i>');
+                $('.profile-input').prop('readonly', true);
+                $('#saveButtonGroup').hide();
+                $('#avatarWrapper').css({'pointer-events': 'none', 'opacity': '0.9'});
+                $('#avatarHint').addClass('d-none'); // Ẩn dòng chữ
+            }
+
+            // 5. CHECK USERNAME
+            $('#txtUsername').on('input', function() {
+                var val = $(this).val().trim();
+                var feedback = $('#usernameFeedback');
+                var saveBtn = $('#btnSaveProfile');
+                feedback.hide().removeClass('text-valid text-invalid');
+                saveBtn.prop('disabled', false);
+
+                if (val.length < 3) return;
+
+                // Gửi AJAX kiểm tra
+                $.ajax({
+                    url: '@Url.Action("CheckUsernameAvailability", "User")',
+                    type: 'POST',
+                    data: { username: val },
+                    success: function(res) {
+                        if (res.exists) {
+                            feedback.html('<i class="fa fa-times-circle"></i> Đã tồn tại').addClass('text-invalid').show();
+                            saveBtn.prop('disabled', true);
+                        } else {
+                            feedback.html('<i class="fa fa-check-circle"></i> Hợp lệ').addClass('text-valid').show();
+                        }
+                    }
+                });
+            });
+
+            // 6. CLICK ẢNH
+            $('#avatarWrapper').click(function() {
+                if (!$('.profile-input').first().prop('readonly')) $('#uploadAvatarInput').click();
+            });
+        });
+
+        function previewFile(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) { $("#previewImg").attr("src", e.target.result); }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

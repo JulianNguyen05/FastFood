@@ -1,0 +1,199 @@
+﻿@model FastFood.Models.LienHe
+
+@{
+    ViewBag.Title = "Liên Hệ - FastFood";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    /* Style cho bản đồ */
+    #contactMap {
+        height: 350px;
+        width: 100%;
+        border-radius: 10px;
+        z-index: 1;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .contact-info-icon {
+        width: 40px;
+        height: 40px;
+        background: #fffbf0;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        /* Khoảng cách margin đã được xử lý bằng class me-3 trong HTML */
+    }
+
+    /* Fix lỗi xung đột hiển thị input của SweetAlert2 trên Bootstrap 5 */
+    .swal2-popup .swal2-select,
+    .swal2-popup .swal2-input,
+    .swal2-popup .swal2-file,
+    .swal2-popup .swal2-textarea {
+        display: none !important;
+    }
+</style>
+
+<section class="bg-light py-4">
+    <div class="container text-center">
+        <h1 class="fw-bold text-uppercase" style="color: #222831;">Liên Hệ Với FastFood</h1>
+        <p class="text-muted">Bạn cần hỗ trợ về đơn hàng hoặc muốn góp ý? Chúng tôi luôn sẵn sàng lắng nghe!</p>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h4 class="fw-bold mb-4 text-warning">Thông tin cửa hàng</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-4 d-flex align-items-center">
+                                <div class="contact-info-icon me-3">
+                                    <i class="fa fa-map-marker text-warning"></i>
+                                </div>
+                                <div>
+                                    <strong>Địa chỉ:</strong><br>
+                                    123 Đường Trần Phú, Lộc Thọ, TP. Nha Trang, Khánh Hòa
+                                </div>
+                            </li>
+                            <li class="mb-4 d-flex align-items-center">
+                                <div class="contact-info-icon me-3">
+                                    <i class="fa fa-phone text-warning"></i>
+                                </div>
+                                <div>
+                                    <strong>Hotline giao hàng:</strong><br>
+                                    <a href="tel:19001234" class="text-dark fw-bold text-decoration-none" style="font-size:18px">1900 1234</a>
+                                </div>
+                            </li>
+                            <li class="mb-4 d-flex align-items-center">
+                                <div class="contact-info-icon me-3">
+                                    <i class="fa fa-envelope text-warning"></i>
+                                </div>
+                                <div>
+                                    <strong>Email hỗ trợ:</strong><br>
+                                    cskh@foodiefastfood.com
+                                </div>
+                            </li>
+                            <li class="mb-4 d-flex align-items-center">
+                                <div class="contact-info-icon me-3">
+                                    <i class="fa fa-clock-o text-warning"></i>
+                                </div>
+                                <div>
+                                    <strong>Giờ hoạt động:</strong><br>
+                                    8:00 - 22:00 (Cả tuần & Lễ)
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div class="mt-4">
+                            <div id="contactMap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-body p-5">
+                        <h3 class="fw-bold mb-4 text-center">Gửi Phản Hồi</h3>
+                        <p class="text-muted text-center small mb-4">Nếu món ăn chưa ngon hoặc giao hàng chậm, hãy báo ngay cho chúng tôi nhé!</p>
+
+                        @using (Html.BeginForm("Send", "Contact", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" name="HoTen" class="form-control rounded-pill px-3"
+                                       required placeholder="Nhập tên của bạn"
+                                       value="@ViewBag.AutoName" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="Email" class="form-control rounded-pill px-3"
+                                       required placeholder="Nhập email để nhận phản hồi"
+                                       value="@ViewBag.AutoEmail" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chủ đề</label>
+                                <input type="text" name="ChuDe" class="form-control rounded-pill px-3"
+                                       required placeholder="VD: Góp ý món Burger, Khiếu nại giao hàng..." />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nội dung <span class="text-danger">*</span></label>
+                                <textarea name="NoiDung" class="form-control rounded" rows="5"
+                                          required placeholder="Bạn muốn nhắn gửi điều gì..."></textarea>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-warning text-white w-100 rounded-pill fw-bold py-2 shadow-sm">
+                                    <i class="fa fa-paper-plane me-2"></i> GỬI NGAY
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var mapDiv = document.getElementById('contactMap');
+            if (mapDiv) {
+                // Tọa độ Nha Trang
+                var nhaTrangCoords = [12.238791, 109.196749];
+
+                var map = L.map('contactMap').setView(nhaTrangCoords, 16);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                L.marker(nhaTrangCoords).addTo(map)
+                    .bindPopup('<div style="text-align:center;"><b>FastFood</b><br>123 Trần Phú, Nha Trang<br><i>Thức ăn ngon - Giao hàng nhanh</i></div>')
+                    .openPopup();
+            }
+        });
+    </script>
+
+    <script>
+        @if(TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã gửi thành công!',
+                text: '@Html.Raw(TempData["SuccessMessage"])',
+                confirmButtonColor: '#ffbe33',
+                confirmButtonText: 'Tuyệt vời'
+            });
+            </text>
+        }
+
+        @if(TempData["Error"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'error',
+                title: 'Có lỗi xảy ra!',
+                text: '@Html.Raw(TempData["Error"])',
+                confirmButtonColor: '#d33'
+            });
+            </text>
+        }
+    </script>
+}

@@ -1,0 +1,272 @@
+﻿@model IEnumerable<FastFood.Models.LoaiSanPham>
+@{
+    ViewBag.Title = "Thực Đơn - Foodie";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    /* --- CSS TÙY CHỈNH CHO THANH TÌM KIẾM --- */
+    .search_section {
+        padding: 30px 0 10px 0;
+        background: transparent;
+    }
+
+    .search_box {
+        position: relative;
+        width: 100%;
+        max-width: 350px;
+        transition: all 0.3s;
+    }
+
+    .search_input {
+        width: 100%;
+        height: 50px;
+        padding: 0 55px 0 25px;
+        border: 2px solid #ffbe33;
+        border-radius: 30px;
+        background: #fff;
+        color: #333;
+        font-size: 15px;
+        outline: none;
+        transition: box-shadow 0.3s;
+    }
+
+        .search_input:focus {
+            box-shadow: 0 5px 20px rgba(255, 190, 51, 0.3);
+        }
+
+    .search_btn {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffbe33;
+        border: none;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+        .search_btn:hover {
+            background: #222831;
+            transform: rotate(90deg);
+        }
+
+    /* --- TINH CHỈNH SWEETALERT2 --- */
+    div:where(.swal2-container.swal2-top-end) {
+        top: 90px !important;
+        right: 20px !important;
+        z-index: 9999;
+    }
+
+    div:where(.swal2-popup.swal2-toast) {
+        padding: 10px 15px !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15) !important;
+        border-radius: 10px !important;
+    }
+
+    /* --- RESPONSIVE --- */
+    @@media (max-width: 768px) {
+        .search_form_container {
+            justify-content: center !important;
+            margin-bottom: 20px;
+        }
+    }
+
+    /* --- BOOTSTRAP 5 CARD TWEAKS --- */
+    .box {
+        background: #fff;
+        border-radius: 15px; /* Bo tròn box */
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    /* Hiệu ứng hover nhẹ cho sản phẩm */
+    .box:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+<section class="search_section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-end search_form_container">
+                <form action="@Url.Action("Index", "Menu")" method="get" class="w-100" style="max-width: 350px;">
+                    <div class="search_box animate__animated animate__fadeInRight">
+                        <input type="text" name="search" class="search_input"
+                               placeholder="Bạn muốn ăn gì hôm nay?..."
+                               value="@ViewBag.SearchKey" autocomplete="off">
+
+                        <button type="submit" class="search_btn">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="food_section layout_padding pt-2">
+    <div class="container">
+        <div class="heading_container heading_center mb-4">
+            <h2>Thực Đơn Của Chúng Tôi</h2>
+        </div>
+
+        <ul class="filters_menu">
+            <li class="active" data-filter="*">Tất cả</li>
+            @foreach (var cat in Model)
+            {
+                if (cat.SanPhams.Count > 0)
+                {
+                    <li data-filter=".cat-@cat.MaLoaiSP">@cat.TenLoaiSP</li>
+                }
+            }
+        </ul>
+
+        <div class="filters-content">
+            <div class="row grid g-4">
+                @if (Model.Sum(x => x.SanPhams.Count) > 0)
+                {
+                    foreach (var cat in Model)
+                    {
+                        foreach (var item in cat.SanPhams)
+                        {
+                            <div class="col-sm-6 col-lg-4 all cat-@cat.MaLoaiSP">
+                                <div class="box shadow-sm rounded">
+                                    <div>
+                                        <div class="img-box">
+                                            <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "/Images/default-food.png" : item.HinhAnh)"
+                                                 alt="@item.TenSanPham"
+                                                 class="img-fluid"
+                                                 onerror="this.src='https://via.placeholder.com/300x300?text=Foodie'">
+                                        </div>
+                                        <div class="detail-box p-3">
+                                            <h5>@item.TenSanPham</h5>
+                                            <p class="text-muted small">
+                                                @(item.MoTa != null && item.MoTa.Length > 70 ? item.MoTa.Substring(0, 70) + "..." : item.MoTa)
+                                            </p>
+                                            <div class="options d-flex justify-content-between align-items-center mt-3">
+                                                <h6 class="mb-0 text-warning fw-bold">
+                                                    @string.Format("{0:N0} đ", item.GiaTien)
+                                                </h6>
+
+                                                <a href="javascript:void(0);" onclick="addToCart(@item.MaSanPham)" class="btn btn-warning rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <i class="fa fa-shopping-cart"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center mt-5">
+                        <img src="~/Images/empty-search.png" style="width: 100px; opacity: 0.5;" alt="Empty" />
+                        <h5 class="mt-3 text-muted">Không tìm thấy món ăn nào!</h5>
+                        <a href="@Url.Action("Index", "Menu")" class="btn btn-sm btn-warning rounded-pill mt-2 text-white px-4">Xem tất cả</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="btn-box mt-5">
+            <a href="" class="btn btn-outline-warning rounded-pill px-5">Xem Thêm</a>
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Isotope Logic
+            var $grid = $('.grid').isotope({
+                itemSelector: '.all',
+                layoutMode: 'fitRows'
+            });
+
+            $('.filters_menu li').click(function () {
+                $('.filters_menu li').removeClass('active');
+                $(this).addClass('active');
+                var data = $(this).attr('data-filter');
+                $grid.isotope({ filter: data });
+            });
+        });
+
+        // Toast Configuration (SweetAlert2)
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        function addToCart(productId) {
+            $.ajax({
+                url: '/Cart/AddToCart',
+                type: 'POST',
+                data: { id: productId },
+                success: function (res) {
+                    if (res.success) {
+                        // 1. Update Badge
+                        $('#headerCartCount').text(res.totalItems);
+                        $('#headerCartCount').show(); // Đảm bảo hiện nếu đang ẩn
+
+                        // 2. Animation Effect
+                        $('.cart_link').addClass('animate__animated animate__rubberBand');
+                        setTimeout(function () {
+                            $('.cart_link').removeClass('animate__animated animate__rubberBand');
+                        }, 1000);
+
+                        // 3. Show Toast
+                        Toast.fire({
+                            icon: 'success',
+                            title: res.msg
+                        });
+                    } else {
+                        if (res.requireLogin) {
+                            Swal.fire({
+                                title: 'Bạn chưa đăng nhập',
+                                text: "Vui lòng đăng nhập để gọi món nhé!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#ffbe33',
+                                confirmButtonText: 'Đăng nhập ngay',
+                                cancelButtonText: 'Để sau'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '/Login/Index';
+                                }
+                            });
+                        } else {
+                            Toast.fire({
+                                icon: 'error',
+                                title: res.msg
+                            });
+                        }
+                    }
+                },
+                error: function () {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Lỗi kết nối server!'
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,143 @@
+﻿@model FastFood.Models.KhachHang
+@{
+    ViewBag.Title = "Thanh Toán";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    decimal tongTien = ViewBag.TongTien ?? 0;
+}
+
+<style>
+    /* Tùy chỉnh vùng QR Code */
+    #qrCodeArea {
+        background-color: #fff8e1; /* Màu nền vàng nhạt */
+        border: 2px dashed #ffbe33; /* Viền nét đứt màu thương hiệu */
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+</style>
+
+<section class="book_section layout_padding">
+    <div class="container">
+        <div class="heading_container heading_center mb-4">
+            <h2>Thanh Toán Đơn Hàng</h2>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-6 col-md-12">
+                <form action="@Url.Action("Checkout", "OrderUser")" method="post" class="form_container">
+                    <h4 class="mb-3 text-dark fw-bold">Thông tin giao hàng</h4>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Địa chỉ giao hàng</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="DiaChiGiao" value="@Model.DiaChi" required placeholder="Số nhà, tên đường, phường/xã..." />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Số điện thoại</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="SoDienThoaiGiao" value="@Model.SoDienThoai" required placeholder="Nhập số điện thoại người nhận" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ghi chú (Tùy chọn)</label>
+                        <textarea class="form-control" name="GhiChu" rows="2" placeholder="Ví dụ: Không bỏ hành, giao giờ hành chính..."></textarea>
+                    </div>
+
+                    <h4 class="mt-4 mb-3 text-dark fw-bold">Phương thức thanh toán</h4>
+
+                    <div class="card p-3 mb-3 border-0 shadow-sm bg-light">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="PhuongThuc" id="paymentCash" value="TienMat" checked onchange="toggleQR(false)">
+                            <label class="form-check-label fw-bold" for="paymentCash">
+                                <i class="fa fa-money text-success me-2"></i> Thanh toán khi nhận hàng (COD)
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="PhuongThuc" id="paymentQR" value="MaQR" onchange="toggleQR(true)">
+                            <label class="form-check-label fw-bold" for="paymentQR">
+                                <i class="fa fa-qrcode text-primary me-2"></i> Quét mã QR (Chuyển khoản)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="qrCodeArea" class="p-4 mb-4 text-center" style="display:none;">
+                        <p class="text-danger fw-bold mb-2">Quét mã để thanh toán: @string.Format("{0:N0} đ", tongTien)</p>
+                        <img src="https://img.vietqr.io/image/MB-0000000000-compact2.png?amount=@((int)tongTien)&addInfo=ThanhToanFastFood"
+                             alt="Mã QR Thanh Toán" class="img-fluid mb-2" style="max-width: 200px;" />
+                        <p class="small text-muted mb-0">Ngân hàng MB Bank - Chủ TK: FastFood Store</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning text-white rounded-pill w-100 py-3 mt-2 fw-bold shadow-sm" style="font-size: 1.1rem;">
+                        XÁC NHẬN ĐẶT HÀNG
+                    </button>
+                </form>
+            </div>
+
+            <div class="col-lg-6 col-md-12">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-warning text-white py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fa fa-shopping-cart me-2"></i>Đơn hàng của bạn</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Món ăn</th>
+                                        <th class="text-center">SL</th>
+                                        <th class="text-end pe-4">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (ViewBag.CartItems != null)
+                                    {
+                                        foreach (var item in ViewBag.CartItems as List<FastFood.Models.GioHang>)
+                                        {
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold">@item.SanPham.TenSanPham</div>
+                                                    <small class="text-muted">@string.Format("{0:N0} đ", item.SanPham.GiaTien)</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-secondary rounded-pill">x @item.SoLuong</span>
+                                                </td>
+                                                <td class="text-end pe-4 fw-bold text-dark">
+                                                    @string.Format("{0:N0} đ", item.SanPham.GiaTien * item.SoLuong)
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0 text-muted">Tổng cộng:</span>
+                            <span class="h4 mb-0 text-danger fw-bold">@string.Format("{0:N0} đ", tongTien)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function toggleQR(show) {
+        var qrArea = document.getElementById('qrCodeArea');
+        if (show) {
+            // Hiệu ứng hiện dần đơn giản bằng jQuery (nếu có) hoặc display block
+            qrArea.style.display = 'block';
+            qrArea.classList.add('animate__animated', 'animate__fadeIn'); // Nếu bạn có dùng Animate.css
+        } else {
+            qrArea.style.display = 'none';
+        }
+    }
+</script>

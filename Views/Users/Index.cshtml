@@ -1,0 +1,249 @@
+﻿@model IEnumerable<FastFood.Models.KhachHang>
+
+@{
+    ViewBag.Title = "Quản Lý Khách Hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@* --- GIỮ NGUYÊN HÀM XỬ LÝ ĐƯỜNG DẪN ẢNH CỦA BẠN --- *@
+@functions {
+    public string GetImageSrc(string imgInfo)
+    {
+        if (string.IsNullOrEmpty(imgInfo)) return "/Images/default-user.png";
+        string cleanPath = imgInfo.Replace("~", "").Trim();
+        if (cleanPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return cleanPath;
+        if (cleanPath.IndexOf("/Images/", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            cleanPath.StartsWith("Images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return cleanPath.StartsWith("/") ? cleanPath : "/" + cleanPath;
+        }
+        return "/Images/User/" + cleanPath;
+    }
+}
+
+<style>
+    /* Custom Header */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 15px 25px;
+    }
+
+    /* Avatar Styling */
+    .avatar-sm {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background-color: #f0f0f0;
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0 2px;
+        transition: all 0.2s;
+    }
+
+    .btn-view {
+        background: #e0f2f1;
+        color: #00695c;
+    }
+
+        .btn-view:hover {
+            background: #00695c;
+            color: white;
+        }
+
+    .btn-edit {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+
+        .btn-edit:hover {
+            background: #0d47a1;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+        .btn-delete:hover {
+            background: #c62828;
+            color: white;
+        }
+
+    /* Modal Details */
+    .detail-label {
+        font-weight: 700;
+        color: #555;
+    }
+
+    .detail-value {
+        color: #000;
+    }
+</style>
+
+<div class="card shadow border-0 mb-4" style="border-radius: 15px;">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-users me-2"></i> DANH SÁCH KHÁCH HÀNG</h5>
+        <a href="@Url.Action("Form", "Users")" class="btn btn-light text-warning fw-bold rounded-pill px-3 shadow-sm">
+            <i class="fas fa-user-plus me-1"></i> Thêm Khách hàng
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Avatar</th>
+                        <th>Họ và Tên</th>
+                        <th>Tài khoản</th>
+                        <th>Liên hệ</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <img src="@GetImageSrc(item.AnhDaiDien)"
+                                         class="avatar-sm"
+                                         onerror="this.src='/Images/default-user.png'" />
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@item.HoTen</div>
+                                    <small class="text-muted">ID: #@item.MaKhachHang</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@item.TenDangNhap</span>
+                                </td>
+                                <td>
+                                    <div style="font-size:13px;"><i class="fas fa-phone-alt text-warning me-1"></i> @item.SoDienThoai</div>
+                                    <div style="font-size:13px;"><i class="fas fa-envelope text-info me-1"></i> @item.Email</div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn-action btn-view" title="Xem chi tiết"
+                                            onclick="showDetails('@HttpUtility.JavaScriptStringEncode(item.HoTen)',
+                                                                 '@HttpUtility.JavaScriptStringEncode(item.TenDangNhap)',
+                                                                 '@HttpUtility.JavaScriptStringEncode(item.Email)',
+                                                                 '@HttpUtility.JavaScriptStringEncode(item.SoDienThoai)',
+                                                                 '@HttpUtility.JavaScriptStringEncode(item.DiaChi)',
+                                                                 '@(item.NgayTao.HasValue ? item.NgayTao.Value.ToString("dd/MM/yyyy HH:mm") : "")',
+                                                                 '@GetImageSrc(item.AnhDaiDien)')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <a href="@Url.Action("Form", "Users", new { id = item.MaKhachHang })" class="btn-action btn-edit" title="Sửa">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+
+                                    <button onclick="confirmDelete(@item.MaKhachHang)" class="btn-action btn-delete" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                Chưa có khách hàng nào!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header" style="background: #ffbe33; color: white;">
+                <h5 class="modal-title fw-bold">Thông Tin Chi Tiết</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <img id="mAvatar" src="/Images/default-user.png" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;" onerror="this.src='/Images/default-user.png'" />
+                    <h5 id="mName" class="fw-bold mt-2 mb-0"></h5>
+                    <span id="mUser" class="badge bg-warning text-dark mt-1"></span>
+                </div>
+                <div class="px-3">
+                    <div class="row mb-2 border-bottom pb-2">
+                        <div class="col-4 detail-label"><i class="fas fa-envelope me-2"></i>Email:</div>
+                        <div class="col-8 detail-value" id="mEmail"></div>
+                    </div>
+                    <div class="row mb-2 border-bottom pb-2">
+                        <div class="col-4 detail-label"><i class="fas fa-phone me-2"></i>SĐT:</div>
+                        <div class="col-8 detail-value" id="mPhone"></div>
+                    </div>
+                    <div class="row mb-2 border-bottom pb-2">
+                        <div class="col-4 detail-label"><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:</div>
+                        <div class="col-8 detail-value" id="mAddress"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 detail-label"><i class="far fa-calendar-alt me-2"></i>Ngày tạo:</div>
+                        <div class="col-8 detail-value" id="mDate"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Hàm hiển thị Modal
+    function showDetails(name, user, email, phone, address, date, img) {
+        $('#mName').text(name);
+        $('#mUser').text(user);
+        $('#mEmail').text(email);
+        $('#mPhone').text(phone);
+        $('#mAddress').text(address);
+        $('#mDate').text(date);
+        $('#mAvatar').attr('src', img);
+
+        // Với jQuery và BS5, cú pháp này vẫn hoạt động tốt
+        $('#userModal').modal('show');
+    }
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Xóa người dùng này?',
+            text: "Dữ liệu sẽ không thể khôi phục!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d63031',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '@Url.Action("Delete", "Users")/' + id;
+            }
+        })
+    }
+</script>

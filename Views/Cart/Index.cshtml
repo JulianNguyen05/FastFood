@@ -1,0 +1,198 @@
+﻿@model List<FastFood.Models.GioHang>
+@{
+    ViewBag.Title = "Giỏ Hàng";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    .cart_section {
+        padding: 50px 0;
+    }
+
+    .img-cart {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .qty-input {
+        width: 60px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 5px;
+    }
+
+    .btn-remove {
+        color: #dc3545;
+        background: #fff;
+        border: 1px solid #dc3545;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-remove:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+    /* CSS CHO NÚT TIẾP TỤC MUA HÀNG */
+    .btn-continue {
+        background-color: transparent;
+        color: #333;
+        border: 2px solid #ffbe33;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+        .btn-continue:hover {
+            background-color: #ffbe33;
+            color: #fff;
+            border-color: #ffbe33;
+            transform: translateY(-2px);
+        }
+</style>
+
+<section class="cart_section">
+    <div class="container">
+        <div class="heading_container heading_center mb-5">
+            <h2>Giỏ Hàng Của Bạn</h2>
+        </div>
+
+        @if (Model != null && Model.Count > 0)
+        {
+            <div class="table-responsive shadow-sm p-4 bg-white rounded">
+                <table class="table align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3">Sản phẩm</th>
+                            <th class="py-3">Đơn giá</th>
+                            <th class="py-3 text-center">Số lượng</th>
+                            <th class="py-3 text-end">Thành tiền</th>
+                            <th class="py-3 text-center">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var soLuong = item.SoLuong ?? 0;
+                            var donGia = item.SanPham.GiaTien;
+                            var thanhTien = soLuong * donGia;
+
+                            <tr id="row-@item.MaSanPham">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(string.IsNullOrEmpty(item.SanPham.HinhAnh) ? "/Images/default-food.png" : item.SanPham.HinhAnh)"
+                                             class="img-cart me-3"
+                                             onerror="this.src='https://via.placeholder.com/80'" />
+
+                                        <div>
+                                            <h5 class="mb-0 fw-bold text-dark" style="font-size: 1.1rem;">
+                                                @item.SanPham.TenSanPham
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-muted fw-bold">
+                                    @string.Format("{0:N0} đ", donGia)
+                                </td>
+                                <td class="text-center">
+                                    <input type="number" class="qty-input" value="@soLuong" min="1"
+                                           onchange="updateQty(@item.MaSanPham, this.value)">
+                                </td>
+                                <td class="text-end fw-bold text-dark" id="total-@item.MaSanPham">
+                                    @string.Format("{0:N0} đ", thanhTien)
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn-remove" onclick="removeItem(@item.MaSanPham)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row mt-4 align-items-center">
+                <div class="col-md-6">
+                    <a href="@Url.Action("Index", "Menu")" class="btn btn-continue rounded-pill px-4 py-2">
+                        <i class="fa fa-arrow-left me-2"></i> Tiếp tục mua hàng
+                    </a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="bg-light p-4 rounded shadow-sm d-inline-block text-start" style="min-width: 300px;">
+                        <h4 class="mb-3">
+                            Tổng cộng:
+                            <span class="text-dark fw-bold float-end" id="grandTotal" style="font-size: 1.8rem;">
+                                @string.Format("{0:N0} đ", ViewBag.TongTien)
+                            </span>
+                        </h4>
+
+                        <a href="@Url.Action("Checkout", "OrderUser")" class="btn btn-warning btn-lg rounded-pill text-white w-100 fw-bold shadow hover-effect mt-2">
+                            Thanh Toán <i class="fa fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <img src="~/Images/empty-cart.png" style="width: 150px; opacity: 0.5; margin-bottom: 20px;" />
+                <h3 class="text-muted">Giỏ hàng của bạn đang trống!</h3>
+                <a href="@Url.Action("Index", "Menu")" class="btn btn-warning rounded-pill text-white mt-3 px-4">
+                    Xem Thực Đơn Ngay
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function updateQty(id, qty) {
+            if (qty < 1) return;
+            $.post('/Cart/UpdateQuantity', { id: id, quantity: qty }, function (res) {
+                if (res.success) {
+                    $('#total-' + id).text(res.itemTotal);
+                    $('#grandTotal').text(res.grandTotal);
+                }
+            });
+        }
+
+        function removeItem(id) {
+            Swal.fire({
+                title: 'Bạn chắc chắn?',
+                text: "Muốn xóa món này khỏi giỏ hàng?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffbe33',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Xóa ngay',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Cart/Remove', { id: id }, function (res) {
+                        if (res.success) {
+                            $('#row-' + id).fadeOut(300, function () { $(this).remove(); });
+                            $('#grandTotal').text(res.grandTotal);
+                            // Kiểm tra nếu chuỗi tiền là "0 đ" hoặc giá trị số là 0
+                            if (res.grandTotal === "0 đ" || res.grandTotal === "0") {
+                                setTimeout(function () { location.reload(); }, 500);
+                            }
+                        }
+                    });
+                }
+            })
+        }
+    </script>
+}

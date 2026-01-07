@@ -1,0 +1,212 @@
+﻿@using FastFood.Controllers.User
+@model IEnumerable<FastFood.Models.LoaiSanPham>
+
+@{
+    ViewBag.Title = "Trang Chủ";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    /* 1. Cấu hình Section nằm đè lên Hero BG */
+    .client_section {
+        background: transparent !important;
+        padding: 80px 0 30px 0;
+    }
+
+    /* 2. Card Kính mờ (Glassmorphism) */
+    .client_box {
+        background: rgba(0, 0, 0, 0.7); /* Tăng độ tối nền lên 0.7 để chữ nổi hơn */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 15px;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 260px;
+    }
+
+        .client_box:hover {
+            background: rgba(0, 0, 0, 0.85);
+            border-color: #ffbe33;
+            transform: translateY(-5px);
+        }
+
+    /* --- PHẦN 1: CHỦ ĐỀ (Nổi bật ở trên) --- */
+    .client_topic {
+        color: #ffbe33;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    /* --- PHẦN 2: NỘI DUNG (Ở giữa) --- */
+    /* Quan trọng: Định dạng thẻ p để chữ màu trắng */
+    .client_content p {
+        font-style: italic;
+        font-size: 1rem;
+        color: #e0e0e0 !important; /* Bắt buộc màu sáng */
+        line-height: 1.6;
+        margin-bottom: 20px;
+        /* Giới hạn 3 dòng, thừa sẽ hiện dấu ... */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Icon quote */
+    .client_content i {
+        color: rgba(255, 255, 255, 0.3) !important; /* Làm mờ icon quote */
+    }
+
+    /* --- PHẦN 3: FOOTER (Avatar + Tên ở dưới) --- */
+    .client_footer {
+        display: flex;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .client_img {
+        width: 55px !important;
+        height: 55px !important;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ffbe33;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .client_name h6 {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .client_name small {
+        color: #aaa;
+        font-size: 0.8rem;
+    }
+
+    /* Ẩn nút điều hướng */
+    .owl-nav, .owl-dots {
+        display: none !important;
+    }
+
+    /* Ẩn các phần thừa */
+    .offer_section, .food_section, .about_section, .book_section {
+        display: none;
+    }
+</style>
+
+@* Helper xử lý ảnh *@
+@functions {
+    public string GetAvatarUrl(string imgPath)
+    {
+        if (string.IsNullOrEmpty(imgPath)) return "/Images/default-user.png";
+        string clean = imgPath.Replace("~", "").Trim();
+        if (clean.StartsWith("http")) return clean;
+        if (clean.Contains("Images")) return clean.StartsWith("/") ? clean : "/" + clean;
+        return "/Images/User/" + clean;
+    }
+}
+
+@section Slider {
+    <section class="client_section">
+        <div class="container">
+            <div class="carousel-wrap">
+                <div class="owl-carousel client_owl-carousel">
+                    @if (ViewBag.Feedbacks != null)
+                    {
+                        var feedbackList = (List<FeedbackData>)ViewBag.Feedbacks;
+                        if (feedbackList.Any())
+                        {
+                            foreach (var feed in feedbackList)
+                            {
+                                <div class="item">
+                                    <div class="client_box">
+                                        <div class="client_topic">
+                                            @feed.ChuDe
+                                        </div>
+
+                                        <div class="client_content">
+                                            <p>
+                                                <i class="fa fa-quote-left me-2"></i>
+                                                @feed.NoiDung
+                                                <i class="fa fa-quote-right ms-2"></i>
+                                            </p>
+                                        </div>
+
+                                        <div class="client_footer">
+                                            <img src="@GetAvatarUrl(feed.AnhDaiDien)" class="client_img" alt="" onerror="this.src='/Images/default-user.png'">
+                                            <div class="client_name">
+                                                <h6>@feed.HoTen</h6>
+                                                <small>Khách hàng thân thiết</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+
+                    @* Dữ liệu mẫu *@
+                    @if (ViewBag.Feedbacks == null || !((List<FeedbackData>)ViewBag.Feedbacks).Any())
+                    {
+                        <div class="item">
+                            <div class="client_box">
+                                <div class="client_topic">KHEN NGỢI</div>
+                                <div class="client_content">
+                                    <p>
+                                        <i class="fa fa-quote-left me-2"></i>
+                                        Món ăn rất ngon, giao hàng nhanh! Tôi chắc chắn sẽ quay lại ủng hộ quán dài dài.
+                                        <i class="fa fa-quote-right ms-2"></i>
+                                    </p>
+                                </div>
+                                <div class="client_footer">
+                                    <img src="~/Images/default-user.png" class="client_img" alt="">
+                                    <div class="client_name">
+                                        <h6>Nguyễn Văn A</h6>
+                                        <small>Thành viên VIP</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $(".client_owl-carousel").owlCarousel({
+                loop: true,
+                margin: 25,
+                nav: false,
+                dots: false,
+                autoplay: true,
+                autoplayTimeout: 3500,
+                autoplayHoverPause: false,
+                smartSpeed: 1500,
+                responsive: {
+                    0: { items: 1 },
+                    768: { items: 2 },
+                    1000: { items: 2 }
+                }
+            });
+        });
+    </script>
+}

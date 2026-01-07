@@ -1,0 +1,166 @@
+﻿@model IEnumerable<FastFood.Models.NhanVien>
+
+@{
+    ViewBag.Title = "Quản Lý Nhân Viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* Custom Header */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 15px 25px;
+    }
+
+    /* Phân biệt màu sắc quyền hạn */
+    .role-badge {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .role-duyet {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        border: 1px solid #bbdefb;
+    }
+
+    .role-ship {
+        background-color: #e8f5e9;
+        color: #1b5e20;
+        border: 1px solid #c8e6c9;
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0 2px;
+        transition: all 0.3s;
+    }
+
+    .btn-edit {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+        .btn-edit:hover {
+            background: #e65100;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+        .btn-delete:hover {
+            background: #c62828;
+            color: white;
+        }
+</style>
+
+<div class="card shadow border-0 mb-4" style="border-radius: 15px;">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-id-badge me-2"></i> DANH SÁCH NHÂN VIÊN</h5>
+        <a href="@Url.Action("Form", "Staff")" class="btn btn-light text-warning fw-bold rounded-pill px-3 shadow-sm">
+            <i class="fas fa-user-plus me-1"></i> Thêm Nhân Viên
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Họ và Tên</th>
+                        <th>Tên đăng nhập</th>
+                        <th class="text-center">Vai Trò</th>
+                        <th>Liên hệ</th>
+                        <th class="text-center">Trạng Thái</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@item.HoTen</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@item.TenDangNhap</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.QuyenSuDung == "NV Duyệt")
+                                    {
+                                        <span class="role-badge role-duyet"><i class="fas fa-tasks me-1"></i> Duyệt đơn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="role-badge role-ship"><i class="fas fa-shipping-fast me-1"></i> Giao hàng</span>
+                                    }
+                                </td>
+                                <td class="small">
+                                    <div class="mb-1"><i class="fas fa-phone-alt text-muted me-1"></i> @item.SoDienThoai</div>
+                                    <div><i class="fas fa-envelope text-muted me-1"></i> @item.Email</div>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.TrangThai == true)
+                                    {
+                                        <i class="fas fa-check-circle text-success" title="Đang hoạt động" style="font-size: 1.2rem;"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle text-danger" title="Đã khóa" style="font-size: 1.2rem;"></i>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="@Url.Action("Form", "Staff", new { id = item.MaNhanVien })" class="btn-action btn-edit" title="Sửa">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <button onclick="confirmDelete(@item.MaNhanVien)" class="btn-action btn-delete" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Chưa có nhân viên nào!</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Xóa nhân viên này?',
+            text: "Dữ liệu sẽ không thể khôi phục sau khi xóa!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d63031',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Staff/Delete/' + id;
+            }
+        })
+    }
+</script>

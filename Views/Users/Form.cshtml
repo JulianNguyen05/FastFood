@@ -1,0 +1,194 @@
+﻿@model FastFood.Models.KhachHang
+
+@{
+    bool isEdit = Model != null && Model.MaKhachHang > 0;
+    ViewBag.Title = isEdit ? "Cập Nhật Khách Hàng" : "Thêm Khách Hàng Mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // --- [FIX LỖI] LOGIC XỬ LÝ ẢNH ---
+    string imageSrc = "";
+    if (Model != null && !string.IsNullOrEmpty(Model.AnhDaiDien))
+    {
+        string cleanPath = Model.AnhDaiDien.Replace("~", "");
+        if (cleanPath.Contains("Images"))
+        {
+            imageSrc = cleanPath.StartsWith("/") ? cleanPath : "/" + cleanPath;
+        }
+        else
+        {
+            imageSrc = "/Images/User/" + cleanPath;
+        }
+    }
+}
+
+<style>
+    /* CSS Custom */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 15px 25px;
+    }
+
+    .image-upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        background-color: #fafafa;
+        transition: all 0.3s;
+    }
+
+    .image-upload-area:hover {
+        border-color: #ffbe33;
+        background: #fffbf0;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: @(string.IsNullOrEmpty(imageSrc) ? "none" : "block");
+    }
+
+    .btn-submit {
+        background: #ffbe33;
+        color: white;
+        font-weight: 700;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: #e69c00;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Input Style */
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 10px 15px;
+    }
+    .form-control:focus {
+        border-color: #ffbe33;
+        box-shadow: 0 0 0 0.25rem rgba(255, 190, 51, 0.25);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow border-0 mb-4" style="border-radius: 15px;">
+            <div class="card-header-custom">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas @(isEdit ? "fa-user-edit" : "fa-user-plus") me-2"></i> @ViewBag.Title.ToUpper()
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+                @using (Html.BeginForm("Save", "Users", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    if (isEdit)
+                    {
+                        @Html.HiddenFor(model => model.MaKhachHang)
+                        @Html.HiddenFor(model => model.AnhDaiDien)
+                        @Html.HiddenFor(model => model.NgayTao)
+                    }
+
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <label class="fw-bold mb-2 form-label">Ảnh Đại Diện</label>
+
+                            <input type="file" name="uploadHinh" id="fileInput" accept="image/*" style="display:none;" />
+
+                            <div class="image-upload-area mb-3" onclick="document.getElementById('fileInput').click()">
+                                <div class="text-center text-muted" id="placeholderIcon" style="display: @(string.IsNullOrEmpty(imageSrc) ? "block" : "none")">
+                                    <i class="fas fa-camera fa-2x mb-2 text-warning"></i>
+                                    <p class="small mb-0 fw-bold">Chọn ảnh</p>
+                                </div>
+
+                                <img id="previewImg" class="image-preview" src="@imageSrc" onerror="this.style.display='none'; document.getElementById('placeholderIcon').style.display='block';" />
+                            </div>
+                            <small class="text-muted">Nhấn vào khung để tải ảnh lên</small>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="fw-bold form-label">Họ và Tên <span class="text-danger">*</span></label>
+                                    @Html.EditorFor(model => model.HoTen, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Nhập họ tên..." } })
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="fw-bold form-label">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                                    @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control", @required = "required", @readonly = isEdit ? "readonly" : null, @placeholder = "Username..." } })
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="fw-bold form-label">Số Điện Thoại</label>
+                                    @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "09xxxx..." } })
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="fw-bold form-label">Email</label>
+                                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @type = "email", @placeholder = "email@example.com" } })
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="fw-bold form-label">Địa Chỉ</label>
+                                    @Html.TextAreaFor(model => model.DiaChi, new { @class = "form-control", @rows = "2", @placeholder = "Nhập địa chỉ giao hàng..." })
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <div class="p-3 bg-light rounded border border-warning">
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-lock me-2 text-warning"></i>Thiết lập bảo mật</h6>
+                                <div class="mb-0">
+                                    <label class="small fw-bold form-label">Mật khẩu @(isEdit ? "(Bỏ trống nếu không muốn đổi)" : "*")</label>
+                                    <input type="password" name="MatKhau" class="form-control" placeholder="Nhập mật khẩu..." @(!isEdit ? "required" : "") />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="@Url.Action("Index")" class="btn btn-light rounded-pill px-4 me-2 border fw-bold text-muted text-decoration-none">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại
+                        </a>
+                        <button type="submit" class="btn btn-submit rounded-pill px-5">
+                            <i class="fas fa-save me-1"></i> LƯU THÔNG TIN
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Xử lý xem trước ảnh khi chọn file từ máy tính
+    document.getElementById('fileInput').onchange = function (evt) {
+        var tgt = evt.target || window.event.srcElement, files = tgt.files;
+        if (FileReader && files && files.length) {
+            var fr = new FileReader();
+            fr.onload = function () {
+                var img = document.getElementById('previewImg');
+                img.src = fr.result;
+                img.style.display = 'block'; // Hiện ảnh lên
+                document.getElementById('placeholderIcon').style.display = 'none'; // Ẩn icon camera đi
+            }
+            fr.readAsDataURL(files[0]);
+        }
+    }
+</script>

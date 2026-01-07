@@ -1,0 +1,161 @@
+﻿@model FastFood.Models.LoaiSanPham
+
+@{
+    // --- LOGIC XÁC ĐỊNH CHẾ ĐỘ (THÊM HAY SỬA) ---
+    bool isEdit = Model != null && Model.MaLoaiSP > 0;
+
+    ViewBag.Title = isEdit ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Xác định Action name để submit form
+    string actionName = isEdit ? "Edit" : "Create";
+
+    // Xác định ảnh hiển thị
+    string imageSrc = (Model != null && !string.IsNullOrEmpty(Model.HinhAnh)) ? Model.HinhAnh : "";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+<style>
+    /* Style Foodie - Đồng bộ */
+    .card-custom { border: none; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white; border-radius: 15px 15px 0 0 !important; padding: 15px 25px;
+    }
+    .form-control { border-radius: 8px; height: 45px; border: 1px solid #ddd; }
+    .form-control:focus { border-color: #ffbe33; box-shadow: 0 0 0 0.2rem rgba(255, 190, 51, 0.25); }
+
+    /* Vùng Upload Ảnh */
+    .image-upload-area {
+        border: 2px dashed #ddd; border-radius: 10px; height: 250px;
+        background: #fdfdfd; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; position: relative; overflow: hidden; transition: 0.3s;
+    }
+    .image-upload-area:hover { border-color: #ffbe33; background: #fffbf0; }
+
+    .image-preview {
+        width: 100%; height: 100%; object-fit: contain; position: absolute;
+        top: 0; left: 0; background: #fff; padding: 5px;
+        display: @(string.IsNullOrEmpty(imageSrc) ? "none" : "block"); /* Ẩn hiện tùy dữ liệu */
+    }
+
+    .upload-placeholder { display: @(string.IsNullOrEmpty(imageSrc) ? "block" : "none"); text-align: center; color: #aaa; }
+
+    .btn-submit { background: #ffbe33; color: white; font-weight: bold; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .btn-submit:hover { background: #e69c00; color: white; transform: translateY(-2px); }
+
+    /* Fix trỏ chuột cho label switch */
+    .cursor-pointer { cursor: pointer; }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card card-custom animate__animated animate__fadeIn">
+
+                <div class="card-header-custom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas @(isEdit ? "fa-edit" : "fa-plus-circle") me-2"></i>
+                        @ViewBag.Title.ToUpper()
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+                    @using (Html.BeginForm(actionName, "Category", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        if (isEdit)
+                        {
+                            @Html.HiddenFor(model => model.MaLoaiSP)
+                            @Html.HiddenFor(model => model.HinhAnh)
+                            @Html.HiddenFor(model => model.NgayTao)
+                        }
+
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="mb-4">
+                                    <label class="fw-bold">Tên Danh Mục <span class="text-danger">*</span></label>
+                                    @Html.EditorFor(model => model.TenLoaiSP, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ví dụ: Pizza, Trà sữa...", @required = "required" } })
+                                    @Html.ValidationMessageFor(model => model.TenLoaiSP, "", new { @class = "text-danger small mt-1" })
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="fw-bold">Trạng Thái</label>
+
+                                    <div class="form-check form-switch mt-2">
+                                        @Html.CheckBox("TrangThai", Model.TrangThai.GetValueOrDefault(true), new { @class = "form-check-input", @id = "switchStatus", @style = "cursor: pointer; width: 3em; height: 1.5em;" })
+
+                                        <label class="form-check-label cursor-pointer ms-3 align-middle mt-1" for="switchStatus" id="statusLabel">
+                                            @if (Model.TrangThai == true)
+                                            {
+                                                <span class="text-success fw-bold">Đang hiển thị</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger fw-bold">Đã ẩn</span>
+                                            }
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="fw-bold">Hình Ảnh</label>
+                                <input type="file" name="uploadHinh" id="fileInput" accept="image/*" style="display:none;" />
+
+                                <div class="image-upload-area" onclick="document.getElementById('fileInput').click()">
+                                    <div class="upload-placeholder" id="placeholderIcon">
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-2" style="color: #ffbe33;"></i>
+                                        <p class="mb-0 fw-bold">@((isEdit) ? "Thay đổi ảnh" : "Chọn ảnh")</p>
+                                    </div>
+
+                                    <img id="previewImg" class="image-preview" src="@imageSrc" onerror="this.style.display='none'; $('#placeholderIcon').show();" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="text-end">
+                            <a href="@Url.Action("Index")" class="btn btn-light rounded-pill px-4 me-2 border fw-bold">
+                                <i class="fas fa-arrow-left me-1"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-submit rounded-pill px-5">
+                                <i class="fas fa-save me-1"></i>
+                                @(isEdit ? "LƯU THAY ĐỔI" : "TẠO MỚI")
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Preview ảnh
+        $("#fileInput").change(function () {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#previewImg').attr('src', e.target.result).fadeIn();
+                    $('#placeholderIcon').hide();
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Đổi chữ trạng thái (Cập nhật class fw-bold)
+        $("#switchStatus").change(function () {
+            if (this.checked) {
+                $("#statusLabel").html('<span class="text-success fw-bold">Đang hiển thị</span>');
+            } else {
+                $("#statusLabel").html('<span class="text-danger fw-bold">Đã ẩn</span>');
+            }
+        });
+    });
+</script>

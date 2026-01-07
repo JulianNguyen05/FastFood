@@ -1,0 +1,222 @@
+﻿@{
+    ViewBag.Title = "Dashboard - Tổng Quan";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var viVN = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<style>
+    /* CSS Riêng cho Dashboard (Giữ nguyên vì không ảnh hưởng bởi version Bootstrap) */
+    .card-dashboard {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+        position: relative;
+        min-height: 140px;
+    }
+
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+    /* Background Gradients */
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #4e73df, #224abe);
+        color: white;
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #1cc88a, #13855c);
+        color: white;
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(45deg, #36b9cc, #258391);
+        color: white;
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(45deg, #f6c23e, #dda20a);
+        color: white;
+    }
+
+    .bg-gradient-danger {
+        background: linear-gradient(45deg, #e74a3b, #be2617);
+        color: white;
+    }
+
+    .bg-gradient-dark {
+        background: linear-gradient(45deg, #5a5c69, #373840);
+        color: white;
+    }
+
+    .bg-gradient-indigo {
+        background: linear-gradient(45deg, #6610f2, #4d0cb5);
+        color: white;
+    }
+
+    .bg-gradient-teal {
+        background: linear-gradient(45deg, #20c997, #17916d);
+        color: white;
+    }
+
+    /* Icon mờ phía sau */
+    .card-icon-bg {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.2;
+        color: white;
+    }
+
+    .card-text-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+    }
+
+    .card-text-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-link {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-size: 0.85rem;
+        display: inline-block;
+        margin-top: 10px;
+        border-bottom: 1px dashed rgba(255,255,255,0.5);
+    }
+
+        .card-link:hover {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid white;
+        }
+</style>
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">Tổng quan tình hình kinh doanh</h4>
+        </div>
+        <div class="bg-white p-2 rounded shadow-sm border">
+            <i class="far fa-calendar-alt text-primary me-2"></i>
+            <span class="fw-bold text-dark">@DateTime.Now.ToString("dd/MM/yyyy")</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-success shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Tổng Doanh Thu</div>
+                    <div class="card-text-value">@String.Format(viVN, "{0:N0} đ", ViewBag.SoldAmount)</div>
+                    <a href="@Url.Action("Index", "Report")" class="card-link">
+                        Xem báo cáo chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-money-bill-wave card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-danger shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Đơn Chờ Xử Lý</div>
+                    <div class="card-text-value">@ViewBag.PendingCount</div>
+                    <a href="@Url.Action("OrderStatus", "Order", new { status = "Chờ duyệt" })" class="card-link">
+                        Xử lý ngay <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-exclamation-triangle card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-primary shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Tổng Đơn Hàng</div>
+                    <div class="card-text-value">@ViewBag.OrderCount</div>
+                    <a href="@Url.Action("OrderStatus", "Order")" class="card-link">
+                        Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-shopping-cart card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-info shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Khách Hàng</div>
+                    <div class="card-text-value">@ViewBag.UserCount</div>
+                    <a href="@Url.Action("Index", "Users")" class="card-link">
+                        Quản lý người dùng <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-users card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-dark shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Sản Phẩm</div>
+                    <div class="card-text-value">@ViewBag.ProductCount</div>
+                    <a href="@Url.Action("Index", "Product")" class="card-link">
+                        Quản lý thực đơn <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-hamburger card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-indigo shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Danh Mục</div>
+                    <div class="card-text-value">@ViewBag.CategoryCount</div>
+                    <a href="@Url.Action("Index", "Category")" class="card-link">
+                        Quản lý loại <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-list card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-teal shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Đơn Hoàn Tất</div>
+                    <div class="card-text-value">@ViewBag.DeliveredCount</div>
+                    <a href="@Url.Action("OrderStatus", "Order", new { status = "Hoàn tất" })" class="card-link">
+                        Lịch sử giao hàng <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-check-circle card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-dashboard bg-gradient-warning shadow h-100">
+                <div class="card-body">
+                    <div class="card-text-label">Phản Hồi Mới</div>
+                    <div class="card-text-value">@ViewBag.ContactCount</div>
+                    <a href="@Url.Action("Index", "Contacts")" class="card-link">
+                        Xem tin nhắn <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    <i class="fas fa-comments card-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

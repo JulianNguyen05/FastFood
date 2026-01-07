@@ -1,0 +1,317 @@
+﻿@{
+    ViewBag.Title = "Về Chúng Tôi - Foodie";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    /* =========================
+       1. WRAPPER + HERO
+       ========================= */
+    .about-wrapper {
+        background-color: #222831;
+        color: #fff;
+        padding-bottom: 80px;
+    }
+
+    .about_hero_area {
+        padding: 60px 0 40px;
+        text-align: center;
+        margin-bottom: 0;
+    }
+
+        .about_hero_area h2 {
+            font-family: 'Dancing Script', cursive;
+            font-weight: bold;
+            font-size: 3.5rem;
+            color: #ffbe33;
+        }
+
+        .about_hero_area p {
+            color: #ddd;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+    /* =========================
+       2. STORY SECTION
+       ========================= */
+    .about_section .detail-box p {
+        color: #e0e0e0;
+        font-size: 1.05rem;
+        line-height: 1.8;
+    }
+
+    .about_section .img-box img {
+        max-width: 100%;
+        animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    }
+
+    @@keyframes float {
+        0% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    /* =========================
+       3. WHY US
+       ========================= */
+    .why_us_section {
+        background-color: #f8f9fa;
+        padding: 90px 0;
+    }
+
+        .why_us_section .heading_container h2 {
+            color: #222831;
+            font-weight: 800;
+        }
+
+    .box-card {
+        background: #fff;
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid transparent;
+        position: relative;
+        top: 0;
+    }
+
+        .box-card:hover {
+            top: -10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: #ffbe33;
+        }
+
+        .box-card .icon-box {
+            width: 80px;
+            height: 80px;
+            background: #fff8e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: #ffbe33;
+            font-size: 2rem;
+            transition: 0.3s;
+        }
+
+        .box-card:hover .icon-box {
+            background: #ffbe33;
+            color: #fff;
+            transform: rotateY(360deg);
+        }
+
+        .box-card h5 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+    /* =========================
+       4. STATS
+       ========================= */
+    .stats_section {
+        background: linear-gradient(rgba(34,40,49,0.9), rgba(34,40,49,0.9)), url('/Images/hero-bg.jpg');
+        background-attachment: fixed;
+        background-size: cover;
+        padding: 80px 0;
+        color: #fff;
+    }
+
+    .stat-item h3 {
+        font-size: 3.5rem;
+        color: #ffbe33;
+        font-weight: 800;
+        margin-bottom: 5px;
+    }
+
+    .stat-item p {
+        font-size: 1.1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+</style>
+
+<!-- =========================
+     HERO + STORY
+     ========================= -->
+<div class="about-wrapper">
+    <section class="about_hero_area">
+        <div class="container">
+            <h2 class="animate__animated animate__fadeInDown">Về FastFood</h2>
+            <p class="animate__animated animate__fadeInUp">
+                Nơi tốc độ phục vụ hòa quyện cùng hương vị đậm đà trong từng món ăn
+            </p>
+        </div>
+    </section>
+
+    <section class="about_section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <div class="img-box text-center animate__animated animate__zoomIn">
+                        <img src="~/Images/about-img.png"
+                             alt="FastFood Story"
+                             onerror="this.src='https://via.placeholder.com/500x400?text=FastFood'">
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="detail-box animate__animated animate__fadeInRight">
+                        <div class="heading_container mb-4">
+                            <h2 style="color:#ffbe33;font-weight:800;font-size:2.5rem;">
+                                Hành Trình Của FastFood
+                            </h2>
+                        </div>
+
+                        <p class="mb-3">
+                            Thành lập từ năm 2020, FastFood ra đời với triết lý:
+                            <b class="text-white">Nhanh trong phục vụ – Chuẩn trong hương vị.</b>
+                            Giữa nhịp sống bận rộn, chúng tôi mong muốn mỗi bữa ăn không chỉ giúp bạn no bụng,
+                            mà còn mang lại sự hài lòng và năng lượng tích cực.
+                        </p>
+
+                        <p class="mb-4">
+                            Từ những chiếc burger nóng hổi, pizza đế giòn thơm lừng
+                            đến các món ăn được chế biến tỉ mỉ mỗi ngày,
+                            FastFood luôn ưu tiên nguyên liệu tươi sạch và quy trình chế biến an toàn.
+                            Với chúng tôi, nấu ăn là đam mê và phục vụ là trách nhiệm.
+                        </p>
+
+                        <a href="@Url.Action("Index", "Menu")"
+                           class="btn btn-warning text-white rounded-pill px-5 py-3 fw-bold shadow-sm">
+                            Xem Thực Đơn Nổi Bật <i class="fa fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- =========================
+     WHY US
+     ========================= -->
+<section class="why_us_section">
+    <div class="container">
+        <div class="heading_container heading_center mb-5 text-center">
+            <h2>Tại Sao Khách Hàng Chọn Foodie?</h2>
+            <p class="text-muted">
+                Không chỉ là đồ ăn nhanh, chúng tôi mang đến trải nghiệm ẩm thực trọn vẹn
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="box-card">
+                    <div class="icon-box"><i class="fa fa-truck"></i></div>
+                    <h5>Phục Vụ Nhanh Chóng</h5>
+                    <p class="text-muted">
+                        Món ăn được chuẩn bị và giao đến bạn trong thời gian ngắn nhất,
+                        luôn đảm bảo nóng hổi và đúng hương vị.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="box-card">
+                    <div class="icon-box"><i class="fa fa-leaf"></i></div>
+                    <h5>Nguyên Liệu Tươi Sạch</h5>
+                    <p class="text-muted">
+                        Chúng tôi chỉ sử dụng nguyên liệu tươi mới mỗi ngày,
+                        nói không với thực phẩm kém chất lượng.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="box-card">
+                    <div class="icon-box"><i class="fa fa-star"></i></div>
+                    <h5>Hương Vị Khác Biệt</h5>
+                    <p class="text-muted">
+                        Công thức chế biến và sốt độc quyền tạo nên dấu ấn riêng
+                        chỉ có tại Foodie.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================
+     STATS
+     ========================= -->
+<section class="stats_section">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <div class="stat-item">
+                    <h3>5+</h3>
+                    <p>Năm Đồng Hành</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <div class="stat-item">
+                    <h3>20+</h3>
+                    <p>Đầu Bếp Chuyên Nghiệp</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3>50+</h3>
+                    <p>Món Ăn Đặc Sắc</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3>10k+</h3>
+                    <p>Khách Hàng Tin Yêu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================
+     CTA
+     ========================= -->
+<section class="layout_padding bg-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h2 class="fw-bold mb-3" style="color:#222;">
+                    Sẵn Sàng Thưởng Thức FastFood?
+                </h2>
+                <p class="mb-4 text-muted">
+                    Đặt món ngay hôm nay để cảm nhận sự khác biệt trong từng hương vị.
+                    FastFood luôn sẵn sàng phục vụ bạn.
+                </p>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="@Url.Action("Index", "Contact")"
+                       class="btn btn-outline-dark rounded-pill px-5 py-2 fw-bold">
+                        Liên Hệ
+                    </a>
+                    <a href="@Url.Action("Index", "Home")#menu_section"
+                       class="btn btn-warning text-white rounded-pill px-5 py-2 fw-bold shadow">
+                        Đặt Món Ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

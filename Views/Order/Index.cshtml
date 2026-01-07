@@ -1,0 +1,270 @@
+﻿@model IEnumerable<FastFood.Models.HoaDon>
+@{
+    ViewBag.Title = "Quản Lý Đơn Hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Lấy quyền user hiện tại
+    var currentUser = Session["User"] as FastFood.Models.NhanVien;
+    string userRole = currentUser != null ? currentUser.QuyenSuDung : "Admin";
+    int currentUserId = currentUser != null ? currentUser.MaNhanVien : 0;
+}
+
+<style>
+    /* Badge trạng thái */
+    .badge-status {
+        padding: 8px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 100px;
+    }
+
+    .st-cho-duyet {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .st-chuan-bi {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .st-dang-giao {
+        background: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+    }
+
+    .st-hoan-tat {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .st-da-huy {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    /* Custom Card Header */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #ff9f1a);
+        padding: 15px 20px;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+</style>
+
+<div class="card shadow border-0 mb-4" style="border-radius: 15px;">
+    <div class="card-header-custom">
+        <h5 class="mb-0 fw-bold text-white"><i class="fas fa-receipt me-2"></i> QUẢN LÝ ĐƠN HÀNG</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Ngày Đặt</th>
+                        <th>Tổng Tiền</th>
+                        <th class="text-center">Trạng Thái</th>
+                        <th class="text-end pe-4">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">#@item.SoHoaDon</td>
+                                <td>
+                                    <div class="fw-bold">@item.KhachHang.HoTen</div>
+                                    <small class="text-muted"><i class="fas fa-phone-alt me-1"></i>@item.KhachHang.SoDienThoai</small>
+                                </td>
+                                <td>@item.NgayDatHang.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="fw-bold text-danger">
+                                    @string.Format("{0:N0} đ", item.TongTien)
+                                </td>
+                                <td class="text-center">
+                                    @if (item.TinhTrang == "Chờ duyệt")
+                                    {<span class="badge-status st-cho-duyet">Chờ duyệt</span> }
+                                    else if (item.TinhTrang == "Đang chuẩn bị")
+                                    { <span class="badge-status st-chuan-bi">Đang chuẩn bị</span> }
+                                    else if (item.TinhTrang == "Đang giao")
+                                    { <span class="badge-status st-dang-giao">Đang giao</span> }
+                                    else if (item.TinhTrang == "Hoàn tất")
+                                    { <span class="badge-status st-hoan-tat">Hoàn tất</span> }
+                                    else
+                                    { <span class="badge-status st-da-huy">Đã hủy</span>}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-light border shadow-sm me-1" onclick="loadDetails(@item.MaHoaDon)" title="Xem chi tiết">
+                                        <i class="fas fa-eye text-dark"></i>
+                                    </button>
+
+                                    @if ((userRole == "Admin" || userRole == "NV Duyệt") && item.TinhTrang == "Chờ duyệt")
+                                    {
+                                        <button class="btn btn-sm btn-success shadow-sm" onclick="updateStatus(@item.MaHoaDon, 'Đang chuẩn bị')">
+                                            <i class="fas fa-check"></i> Duyệt
+                                        </button>
+                                        <button class="btn btn-sm btn-danger shadow-sm" onclick="openRejectModal(@item.MaHoaDon)">
+                                            <i class="fas fa-times"></i> Hủy
+                                        </button>
+                                    }
+
+                                    @if ((userRole == "Admin" || userRole == "NV Giao hàng") && item.TinhTrang == "Đang chuẩn bị")
+                                    {
+                                        <button class="btn btn-sm btn-primary shadow-sm" onclick="updateStatus(@item.MaHoaDon, 'Đang giao')">
+                                            <i class="fas fa-motorcycle"></i> Nhận đơn
+                                        </button>
+                                    }
+
+                                    @if (item.TinhTrang == "Đang giao" && (userRole == "Admin" || item.MaNVGiao == currentUserId))
+                                    {
+                                        <button class="btn btn-sm btn-success shadow-sm" onclick="updateStatus(@item.MaHoaDon, 'Hoàn tất')">
+                                            <i class="fas fa-hand-holding-usd"></i> Giao xong
+                                        </button>
+                                    }
+
+                                    @if (userRole == "Admin")
+                                    {
+                                        <a href="@Url.Action("Delete", "Order", new { id = item.MaHoaDon })"
+                                           class="btn btn-sm btn-outline-danger ms-1"
+                                           onclick="return confirm('Bạn chắc chắn muốn xóa đơn này khỏi hệ thống?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Chưa có đơn hàng nào!</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title fw-bold">Chi Tiết Đơn Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Lý do từ chối / Hủy đơn</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rejectOrderId" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nhập lý do:</label>
+                    <textarea id="rejectReason" class="form-control" rows="3" placeholder="Ví dụ: Khách boom hàng, Hết nguyên liệu, Sai địa chỉ..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Xác nhận Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // 1. Cập nhật trạng thái
+    function updateStatus(id, status, note = "") {
+        Swal.fire({
+            title: 'Xác nhận thay đổi?',
+            text: "Chuyển trạng thái đơn hàng thành: " + status,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ffbe33',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/Order/UpdateStatus', { id: id, status: status, note: note }, function (res) {
+                    if (res.success) {
+                        Swal.fire('Thành công!', 'Trạng thái đã được cập nhật.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', res.msg, 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // 2. Mở Modal Hủy
+    function openRejectModal(id) {
+        $('#rejectOrderId').val(id);
+        // Lưu ý: Nếu jQuery version cũ không nhận Bootstrap 5, dùng vanilla JS:
+        // var myModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        // myModal.show();
+        // Nhưng thường trong project MVC có jQuery thì lệnh dưới vẫn chạy tốt:
+        $('#rejectModal').modal('show');
+    }
+
+    // 3. Xác nhận Hủy
+    function confirmReject() {
+        var id = $('#rejectOrderId').val();
+        var reason = $('#rejectReason').val();
+
+        if (!reason.trim()) {
+            Swal.fire('Thông báo', 'Vui lòng nhập lý do hủy đơn!', 'warning');
+            return;
+        }
+
+        $.post('/Order/UpdateStatus', { id: id, status: "Đã hủy", note: reason }, function (res) {
+            if (res.success) {
+                $('#rejectModal').modal('hide'); // Ẩn modal
+                Swal.fire('Đã hủy!', 'Đơn hàng đã bị hủy bỏ.', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Lỗi!', res.msg || 'Có lỗi xảy ra', 'error');
+            }
+        });
+    }
+
+    // 4. Load chi tiết (AJAX)
+    function loadDetails(id) {
+        $('#detailModal').modal('show');
+        // Reset nội dung loading trước khi load mới
+        $('#detailContent').html('<div class="text-center py-5"><div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+
+        $('#detailContent').load('/Order/Details/' + id, function (response, status, xhr) {
+            if (status == "error") {
+                $('#detailContent').html('<div class="alert alert-danger">Không thể tải chi tiết đơn hàng.</div>');
+            }
+        });
+    }
+</script>

@@ -1,0 +1,268 @@
+﻿@using FastFood.Models
+@model FastFood.Models.HoaDon
+
+@{
+    ViewBag.Title = "Chi tiết đơn hàng #" + Model.SoHoaDon;
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+
+    // --- LOGIC TRẠNG THÁI (Cập nhật class màu BS5) ---
+    int currentStep = 1;
+    bool isCancelled = false;
+    // BS5 dùng bg-warning text-dark thay vì badge-warning
+    string statusBadgeClass = "bg-warning text-dark";
+
+    if (Model.TinhTrang == "Đã hủy")
+    {
+        isCancelled = true;
+        statusBadgeClass = "bg-danger";
+    }
+    else if (Model.TinhTrang == "Đang giao" || Model.TinhTrang == "Đã duyệt")
+    {
+        currentStep = 2;
+        statusBadgeClass = "bg-primary";
+    }
+    else if (Model.TinhTrang == "Hoàn tất" || Model.TinhTrang == "Delivered")
+    {
+        currentStep = 3;
+        statusBadgeClass = "bg-success";
+    }
+}
+
+<style>
+    /* THANH TRẠNG THÁI (TRACKING) - Giữ nguyên logic CSS, chỉ chỉnh màu */
+    .track {
+        position: relative;
+        background-color: #ddd;
+        height: 5px;
+        display: flex;
+        margin-bottom: 50px;
+        margin-top: 40px;
+    }
+
+    .track .step {
+        flex-grow: 1;
+        width: 25%;
+        margin-top: -15px;
+        text-align: center;
+        position: relative;
+    }
+
+    .track .step:before {
+        height: 5px;
+        position: absolute;
+        content: '';
+        width: 100%;
+        left: 0;
+        top: 15px;
+    }
+
+    .track .step.active:before {
+        background-color: #ffc107; /* Màu vàng */
+    }
+
+    .track .step .icon {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        position: relative;
+        border-radius: 100%;
+        background: #ddd;
+        color: #fff;
+        z-index: 2;
+    }
+
+    .track .step.active .icon {
+        background: #ffc107;
+        color: #fff;
+    }
+
+    .track .step .text {
+        font-weight: bold;
+        color: #999;
+        display: block;
+        margin-top: 7px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+
+    .track .step.active .text {
+        color: #000;
+    }
+
+    /* CHẾ ĐỘ IN ẤN */
+    @@media print {
+        body * { visibility: hidden; }
+        #print-area, #print-area * { visibility: visible; }
+        #print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .d-print-none { display: none !important; }
+        .bg-light {
+            background-color: #f8f9fa !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+
+<section class="layout_padding py-5" style="background-color: #f5f7fa; min-height: 100vh;">
+    <div class="container">
+
+        <div class="mb-4 d-print-none">
+            <a href="@Url.Action("Profile", "User")" class="btn btn-outline-secondary rounded-pill btn-sm">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại lịch sử
+            </a>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-lg rounded-3 overflow-hidden" id="print-area">
+
+                    <div class="card-header bg-white border-bottom p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="fw-bold text-warning m-0" style="letter-spacing: -1px;">FastFood</h2>
+                                <p class="text-muted small mb-0">Hóa đơn điện tử ngày @DateTime.Now.ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <div class="text-end">
+                                <h5 class="fw-bold m-0 text-dark">#@Model.SoHoaDon</h5>
+                                <span class="badge rounded-pill @statusBadgeClass">
+                                    @Model.TinhTrang.ToUpper()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        @if (!isCancelled)
+                        {
+                            <div class="px-5 d-print-none">
+                                <div class="track">
+                                    <div class="step active">
+                                        <span class="icon"><i class="fa fa-check"></i></span>
+                                        <span class="text">Đã đặt</span>
+                                    </div>
+                                    <div class="step @(currentStep >= 2 ? "active" : "")">
+                                        <span class="icon"><i class="fa fa-truck"></i></span>
+                                        <span class="text">Đang giao</span>
+                                    </div>
+                                    <div class="step @(currentStep >= 3 ? "active" : "")">
+                                        <span class="icon"><i class="fa fa-star"></i></span>
+                                        <span class="text">Hoàn tất</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                                <i class="fa fa-exclamation-triangle fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Đơn hàng đã hủy</h6>
+                                    <span>Lý do: @(string.IsNullOrEmpty(Model.GhiChuHuy) ? "Khách hàng hủy" : Model.GhiChuHuy)</span>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="row mb-4 mt-4 g-4">
+                            <div class="col-md-6">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-3">Người nhận</h6>
+                                <div class="ps-3 border-start border-warning border-3">
+                                    <h5 class="fw-bold mb-1">@Model.KhachHang.HoTen</h5>
+                                    <p class="mb-1 text-muted"><i class="fa fa-phone fa-fw me-2"></i>@Model.SoDienThoaiGiao</p>
+                                    <p class="mb-0 text-muted"><i class="fa fa-map-marker fa-fw me-2"></i>@Model.DiaChiGiao</p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 text-md-end">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-3">Thanh toán</h6>
+                                <p class="mb-1">
+                                    Ngày đặt: <strong>@Model.NgayDatHang.Value.ToString("dd/MM/yyyy ' - Giờ: ' HH:mm")</strong>
+                                </p>
+                                <p class="mb-0">
+                                    Hình thức:
+                                    <span class="fw-bold text-dark">
+                                        @(Model.PhuongThucThanhToan == "MaQR" ? "Chuyển khoản" : "Tiền mặt (COD)")
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-borderless bg-light rounded-3">
+                                <thead class="border-bottom">
+                                    <tr class="text-muted text-uppercase small">
+                                        <th scope="col">Món ăn</th>
+                                        <th scope="col" class="text-center">SL</th>
+                                        <th scope="col" class="text-end">Đơn giá</th>
+                                        <th scope="col" class="text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ChiTietHoaDons)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">
+                                                @if (item.SanPham != null)
+                                                {@item.SanPham.TenSanPham }
+                                            else
+                                            { <em>Sản phẩm ngừng kinh doanh</em>}
+                                            </td>
+                                            <td class="text-center">x @item.SoLuong</td>
+                                            <td class="text-end">@string.Format("{0:N0}", item.DonGia)</td>
+                                            <td class="text-end fw-bold">@string.Format("{0:N0}", item.SoLuong * item.DonGia)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row justify-content-end mt-4">
+                            <div class="col-lg-5 col-md-7">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Tạm tính:</span>
+                                    <span class="fw-bold">@string.Format("{0:N0} đ", Model.TongTien)</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Phí vận chuyển:</span>
+                                    <span class="fw-bold">0 đ</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="fw-bold mb-0">TỔNG CỘNG</h5>
+                                    <h3 class="fw-bold text-danger mb-0">@string.Format("{0:N0} đ", Model.TongTien)</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <img src="https://barcode.tec-it.com/barcode.ashx?data=@Model.SoHoaDon&code=Code128&dpi=96" alt="Barcode" style="height: 40px; opacity: 0.8" />
+                            <p class="text-muted fst-italic mt-2 mb-1">Cảm ơn bạn đã lựa chọn FastFood!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 mb-5 d-print-none">
+                    <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm me-3">
+                        <i class="fa fa-print me-2"></i> In Hóa Đơn
+                    </button>
+
+                    <a href="@Url.Action("ExportToExcel", "OrderUser", new { id = Model.MaHoaDon })" class="btn btn-success rounded-pill px-4 shadow-sm me-3">
+                        <i class="fa fa-file-excel-o me-2"></i> Xuất Excel
+                    </a>
+
+                    <a href="@Url.Action("Index", "Menu")" class="btn btn-warning text-white rounded-pill px-4 shadow-sm">
+                        <i class="fa fa-cutlery me-2"></i> Đặt thêm món
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,293 @@
+﻿@model FastFood.Models.NhanVien
+
+@{
+    bool isEdit = Model != null && Model.MaNhanVien > 0;
+    ViewBag.Title = isEdit ? "Cập Nhật Nhân Viên" : "Thêm Nhân Viên Mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* ... (Giữ nguyên CSS của bạn) ... */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 20px 25px;
+    }
+
+    .btn-submit {
+        background: #ffbe33;
+        color: white;
+        font-weight: 700;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: 0.3s;
+    }
+
+        .btn-submit:hover {
+            background: #e69c00;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        height: 45px;
+        border: 1px solid #ced4da;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #ffbe33;
+            box-shadow: 0 0 0 0.25rem rgba(255, 190, 51, 0.25);
+        }
+
+    .input-group-text {
+        font-weight: bold;
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-primary {
+        color: #0d6efd !important;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow border-0 mb-4" style="border-radius: 15px;">
+            <div class="card-header-custom">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas @(isEdit ? "fa-user-edit" : "fa-user-plus") me-2"></i> @ViewBag.Title.ToUpper()
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+                @using (Html.BeginForm("Save", "Staff", FormMethod.Post, new { autocomplete = "off", id = "staffForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    if (isEdit)
+                    { @Html.HiddenFor(model => model.MaNhanVien) }
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
+                        @Html.EditorFor(model => model.HoTen, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Nguyễn Văn A" } })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Vai Trò</label>
+                        @* --- SỬA LỖI TẠI ĐÂY --- *@
+                        @* Thay 'null' bằng '(IEnumerable<SelectListItem>)ViewBag.RoleList' *@
+                        @Html.DropDownList("QuyenSuDung", (IEnumerable<SelectListItem>)ViewBag.RoleList, new { @class = "form-control", @id = "ddlRole" })
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="userPrefix">DH-</span>
+                            @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control", @id = "txtUsername", @required = "required", @placeholder = "nhapten...", autocomplete = "off" } })
+                        </div>
+                        <small class="text-muted mt-1 d-block">Tiền tố <span id="hintPrefix" class="fw-bold">DH-</span> sẽ được tự động thêm.</small>
+                        @Html.ValidationMessageFor(model => model.TenDangNhap, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold d-block">Trạng Thái</label>
+                        <div class="form-check form-switch mt-2">
+                            @Html.CheckBox("TrangThai", Model.TrangThai.GetValueOrDefault(true), new { @class = "form-check-input", @id = "switchStatus", @style = "cursor:pointer;" })
+                            <label class="form-check-label" for="switchStatus" id="statusLabel" style="cursor:pointer;">
+                                @(Model.TrangThai == true ? "Đang hoạt động" : "Đã khóa")
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Số Điện Thoại</label>
+                        @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", autocomplete = "off" } })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email</label>
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @type = "email", autocomplete = "off" } })
+                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger small" })
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-lock me-2"></i>Mật khẩu đăng nhập</h6>
+                    <div class="mb-0">
+                        <label class="form-label small text-muted">Nhập mật khẩu @(isEdit ? "(Chỉ nhập nếu muốn đổi pass mới)" : "*")</label>
+                        <input type="password" name="MatKhau" class="form-control" placeholder="******" @(!isEdit ? "required" : "") autocomplete="new-password" />
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <a href="@Url.Action("Index")" class="btn btn-light rounded-pill px-4 me-2 border fw-bold text-decoration-none">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-submit rounded-pill px-5">
+                        <i class="fas fa-save me-1"></i> LƯU NHÂN VIÊN
+                    </button>
+                </div>
+            }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        // ======================================================
+        // 1. HÀM BỎ DẤU TIẾNG VIỆT (GIỮ NGUYÊN HOA/THƯỜNG)
+        // ======================================================
+        function removeVietnameseTones(str) {
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+            str = str.replace(/đ/g, "d");
+            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+            str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+            str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+            str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+            str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+            str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+            str = str.replace(/Đ/g, "D");
+            // Xóa các ký tự đặc biệt
+            str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+            str = str.replace(/\02C6|\u0306|\u031B/g, "");
+            return str;
+        }
+
+        // ======================================================
+        // 2. HÀM TẠO USERNAME (Lấy Tên Lót + Tên, Viết liền)
+        // ======================================================
+        function generateUsername(fullName) {
+            if (!fullName) return "";
+
+            // Bỏ dấu (Giữ nguyên hoa thường để được HuuTrong)
+            let cleanStr = removeVietnameseTones(fullName);
+
+            // Tách các từ bằng khoảng trắng
+            let parts = cleanStr.split(' ').filter(x => x.length > 0);
+
+            if (parts.length >= 2) {
+                // Lấy 2 từ cuối ghép lại (Ví dụ: Huu + Trong => HuuTrong)
+                return parts[parts.length - 2] + parts[parts.length - 1];
+            } else if (parts.length === 1) {
+                return parts[0];
+            }
+            return "";
+        }
+
+        // ======================================================
+        // 3. LOGIC CẬP NHẬT GIAO DIỆN & PREFIX
+        // ======================================================
+        function updatePrefix() {
+            var roleText = $("#ddlRole option:selected").text().toLowerCase();
+            var prefix = "DH-";
+            var cssClassRemove = "text-success";
+            var cssClassAdd = "text-primary";
+
+            if (roleText.indexOf("giao") !== -1) {
+                prefix = "GH-";
+                cssClassRemove = "text-primary";
+                cssClassAdd = "text-success";
+            }
+
+            $("#userPrefix").text(prefix);
+            $("#userPrefix").removeClass(cssClassRemove).addClass(cssClassAdd);
+            $("#hintPrefix").text(prefix); // Cập nhật dòng nhắc nhở
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            var prefix = $("#userPrefix").text();
+            var name = $("#txtUsername").val();
+            // Xóa prefix cũ nếu có để hiển thị (VD: GH-HuuTrong -> HuuTrong)
+            var cleanName = name.replace(/^(GH-|DH-)/, '');
+            $("#previewUsername").text(prefix + cleanName);
+        }
+
+        // ======================================================
+        // 4. SỰ KIỆN CHÍNH
+        // ======================================================
+
+        // A. Khi nhập Họ Tên -> Tự động điền User + Mở khóa ô User
+        $('#HoTen').on('input', function () {
+            var hoTen = $(this).val();
+            var usernameInput = $("#txtUsername");
+
+            if (!hoTen || hoTen.trim() === "") {
+                // Nếu CHƯA NHẬP tên: Xóa user và KHÓA lại
+                usernameInput.val("").prop('readonly', true);
+            } else {
+                // Nếu ĐÃ NHẬP tên: MỞ KHÓA và Tự điền
+                usernameInput.prop('readonly', false);
+
+                var autoUser = generateUsername(hoTen);
+                usernameInput.val(autoUser);
+            }
+            updatePreview();
+        });
+
+        // B. Khởi tạo trạng thái ban đầu (cho trang Add/Edit)
+        function initFormState() {
+            var hoTen = $('#HoTen').val();
+            var usernameInput = $("#txtUsername");
+
+            // Nếu ô Họ tên rỗng -> Khóa ô User ngay từ đầu
+            if (!hoTen || hoTen.trim() === "") {
+                usernameInput.prop('readonly', true);
+            } else {
+                usernameInput.prop('readonly', false);
+
+                // Nếu đang Edit (có dữ liệu cũ), cần tách prefix cũ ra
+                var currentVal = usernameInput.val();
+                if (currentVal) {
+                    var cleanVal = currentVal.replace(/^(GH-|DH-)/, '');
+                    usernameInput.val(cleanVal);
+                }
+            }
+            updatePrefix();
+        }
+
+        // Các sự kiện khác
+        $("#ddlRole").change(function () { updatePrefix(); });
+        $("#txtUsername").on("input", function () { updatePreview(); });
+
+        $("#switchStatus").change(function () {
+            if (this.checked) {
+                $("#statusLabel").text("Đang hoạt động").removeClass("text-muted").addClass("text-success fw-bold");
+            } else {
+                $("#statusLabel").text("Đã khóa").removeClass("text-success fw-bold").addClass("text-muted");
+            }
+        });
+
+        // Trước khi Submit -> Nối Prefix vào input
+        $("#staffForm").submit(function () {
+            var prefix = $("#userPrefix").text();
+            var username = $("#txtUsername").val();
+            $("#txtUsername").val(prefix + username);
+            return true;
+        });
+
+        // Chạy lần đầu
+        initFormState();
+        $("#switchStatus").trigger('change');
+    });
+</script>

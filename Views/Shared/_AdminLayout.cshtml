@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - FastFood Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <link rel="stylesheet" href="https://allyoucan.cloud/cdn/icofont/1.0.1/icofont.css" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; background: #f4f7fa; }
+
+        /* --- SIDEBAR STYLE --- */
+        .wrapper { display: flex; width: 100%; align-items: stretch; }
+
+        #sidebar {
+            min-width: 250px; max-width: 250px;
+            background: #343a40; color: #fff;
+            transition: all 0.3s; min-height: 100vh;
+        }
+        #sidebar.active { margin-left: -250px; }
+
+        .sidebar-header {
+            padding: 20px; background: #212529; border-bottom: 1px solid #454d55;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-header h3 { color: #ffbe33; font-weight: 700; margin: 0; font-size: 1.5rem; }
+
+        .btn-close-sidebar {
+            background: transparent; color: #fff; border: none;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-close-sidebar:hover { color: #ffbe33; transform: scale(1.1); }
+
+        #sidebar ul.components { padding: 20px 0; }
+
+        #sidebar ul li a {
+            padding: 15px 25px; font-size: 1rem; display: block;
+            color: #adb5bd; text-decoration: none; transition: 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        #sidebar ul li a:hover { color: #fff; background: #495057; border-left: 4px solid #ffbe33; }
+        #sidebar ul li a i { margin-right: 15px; width: 20px; text-align: center; }
+        #sidebar ul li.active > a { background: #ffbe33; color: #212529; border-left: 4px solid #fff; font-weight: 500; }
+
+        /* --- CONTENT STYLE --- */
+        #content { width: 100%; min-height: 100vh; transition: all 0.3s; }
+
+        /* Navbar Admin fix cho BS5 */
+        .navbar-admin { padding: 15px 20px; background: #fff; box-shadow: 0 1px 15px rgba(0,0,0,0.04); border: none; }
+
+        .btn-open-sidebar {
+            background: #ffbe33; color: #fff; border: none;
+            display: none; /* Mặc định ẩn trên màn hình lớn */
+        }
+
+        /* --- WIDGET CARDS --- */
+        .card { border: none; border-radius: 5px; box-shadow: 0 1px 20px 0 rgba(69,90,100,0.08); margin-bottom: 30px; }
+        .card-block-small { padding: 25px; }
+
+        /* Colors */
+        .bg-c-blue { background: linear-gradient(45deg,#4099ff,#73b4ff); }
+        .bg-c-pink { background: linear-gradient(45deg,#FF5370,#ff869a); }
+        .bg-c-green { background: linear-gradient(45deg,#2ed8b6,#59e0c5); }
+        .bg-c-yellow { background: linear-gradient(45deg,#FFB64D,#ffcb80); }
+
+        .text-c-blue { color: #4099ff; }
+        .text-c-pink { color: #FF5370; }
+        .text-c-green { color: #2ed8b6; }
+        .text-c-yellow { color: #FFB64D; }
+
+        .f-w-600 { font-weight: 600; }
+
+        /* Thay float-left cũ bằng float-start */
+        .f-left { float: left; }
+
+        .m-t-10 { margin-top: 10px; display: block; }
+
+        .card1-icon {
+            position: absolute;
+            right: -17px;
+            top: 10px;
+            font-size: 80px;
+            opacity: 0.3;
+            background: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background: inherit;
+        }
+        .widget-card-1 .card1-icon {
+             color: rgba(255, 255, 255, 0.4);
+             background: none;
+             -webkit-text-fill-color: initial;
+        }
+
+        /* Ẩn input rác của SweetAlert2 */
+        .swal2-popup .swal2-select,
+        .swal2-popup .swal2-input,
+        .swal2-popup .swal2-file,
+        .swal2-popup .swal2-textarea {
+            display: none !important;
+        }
+
+        @@media (max-width: 768px) {
+            #sidebar { margin-left: -250px; }
+            #sidebar.active { margin-left: 0; }
+            .btn-open-sidebar { display: inline-block; }
+        }
+    </style>
+</head>
+<body>
+
+    @{
+        string currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString();
+        string currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        string role = "";
+        string showName = "Guest";
+
+        if (Session["admin"] != null)
+        {
+            role = "Admin";
+            showName = Session["admin"].ToString();
+        }
+        else if (Session["staffId"] != null)
+        {
+            role = Session["staffRole"]?.ToString();
+            showName = Session["staffName"]?.ToString();
+        }
+    }
+
+    <div class="wrapper">
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-utensils me-2"></i>FastFood</h3>
+                <button type="button" id="sidebarClose" class="btn-close-sidebar" title="Thu gọn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <ul class="list-unstyled components">
+                @if (role == "Admin")
+                {
+                    <li class="@(currentCtrl == "Admin" || currentAction == "Default" ? "active" : "")">
+                        <a href="@Url.Action("Default", "Admin")"><i class="fas fa-tachometer-alt"></i> Tổng quan</a>
+                    </li>
+                    <li class="@(currentCtrl == "Category" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Category")"><i class="fas fa-list"></i> Danh mục</a>
+                    </li>
+                    <li class="@(currentCtrl == "Product" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Product")"><i class="fas fa-hamburger"></i> Sản phẩm</a>
+                    </li>
+                }
+
+                @if (!string.IsNullOrEmpty(role))
+                {
+                    <li class="@(currentCtrl == "Order" || currentAction == "OrderStatus" ? "active" : "")">
+                        <a href="@Url.Action("OrderStatus", "Order")"><i class="fas fa-shipping-fast"></i> Quản lý Đơn hàng</a>
+                    </li>
+                }
+
+                @if (role == "Admin")
+                {
+                    <li class="@(currentCtrl == "Users" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Users")"><i class="fas fa-users"></i> Khách hàng</a>
+                    </li>
+                    <li class="@(currentCtrl == "Staff" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Staff")"><i class="fas fa-id-badge"></i> Nhân viên</a>
+                    </li>
+                    <li class="@(currentCtrl == "Contacts" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Contacts")"><i class="fas fa-envelope"></i> Phản hồi</a>
+                    </li>
+                    <li class="@(currentAction == "Report" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Report")"><i class="fas fa-chart-line"></i> Báo cáo</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-admin">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarOpen" class="btn btn-toggle btn-open-sidebar shadow-sm">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="ms-auto">
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle text-dark fw-bold text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="/Images/default-user.png" class="rounded-circle me-2" style="width:30px; height:30px;" onerror="this.src='https://placehold.co/30'" />
+                                <span>@showName <small class="text-muted">(@role)</small></span>
+                            </a>
+
+                            <div class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <a class="dropdown-item text-danger" href="@Url.Action("DangXuat", "Login")">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="p-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Logic Sidebar (Dùng jQuery vẫn ổn)
+            function toggleButtons() {
+                if ($('#sidebar').hasClass('active')) {
+                    $('#sidebarOpen').fadeIn();
+                } else {
+                    $('#sidebarOpen').hide();
+                }
+            }
+
+            $('#sidebarClose, #sidebarOpen').on('click', function () {
+                $('#sidebar').toggleClass('active');
+                toggleButtons();
+            });
+
+            // Gọi lần đầu
+            toggleButtons();
+        });
+
+        // Global Notification
+        @if(TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: '@Html.Raw(TempData["SuccessMessage"])',
+                confirmButtonColor: '#ffbe33',
+                timer: 3000
+            });
+            </text>
+        }
+
+        @if(TempData["Error"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: '@Html.Raw(TempData["Error"])',
+                confirmButtonColor: '#d33'
+            });
+            </text>
+        }
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

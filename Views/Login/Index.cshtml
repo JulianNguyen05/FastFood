@@ -1,0 +1,407 @@
+﻿@{
+    Layout = null;
+
+    // 1. Lấy dữ liệu từ TempData (khi vừa Đăng ký thành công)
+    string preUser = TempData["RegisteredUser"] as string;
+    string prePass = TempData["RegisteredPass"] as string;
+    string successMsg = TempData["SuccessMessage"] as string;
+
+    // 2. Lấy dữ liệu người dùng vừa nhập sai (từ Controller gửi về)
+    string typedUser = ViewBag.Username as string;
+
+    // 3. Logic hiển thị: Ưu tiên (Đăng ký xong) -> (Nhập sai) -> Rỗng
+    string displayUser = !string.IsNullOrEmpty(preUser) ? preUser : typedUser;
+
+    // 4. [KỸ THUẬT CHẶN AUTOFILL]
+    string antiAutofill = string.IsNullOrEmpty(displayUser) ? "readonly onfocus=\"this.removeAttribute('readonly');\"" : "";
+
+    // 5. Lấy thông tin đăng nhập thành công
+    bool isLoginSuccess = ViewBag.LoginSuccess != null && (bool)ViewBag.LoginSuccess;
+    string welcomeMsg = ViewBag.WelcomeMsg as string;
+    string redirectUrl = ViewBag.RedirectUrl as string;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Foodie System</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        /* --- CSS TÙY CHỈNH --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-image: url('/Images/hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+            transition: background 0.5s;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1;
+            transition: background 0.5s;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+            border-top: 5px solid #ffbe33;
+            transition: all 0.3s;
+        }
+
+        .admin-mode .login-card {
+            border-top: 5px solid #d63031;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 20px rgba(214, 48, 49, 0.5);
+        }
+
+        .admin-mode .btn-login {
+            background: #d63031;
+            box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3);
+        }
+
+            .admin-mode .btn-login:hover {
+                background: #b71515;
+            }
+
+        .brand-logo {
+            font-size: 38px;
+            font-weight: 900;
+            color: #ffbe33;
+            margin-bottom: 5px;
+            font-family: cursive;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+
+            .brand-logo:active {
+                transform: scale(0.95);
+            }
+
+        .form-control {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            padding: 12px 45px 12px 20px;
+            height: 50px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+            .form-control:focus {
+                background: #fff;
+                border-color: #ffbe33;
+                box-shadow: 0 0 0 4px rgba(255, 190, 51, 0.3);
+                outline: none;
+            }
+
+        .admin-mode .form-control:focus {
+            border-color: #d63031;
+            box-shadow: 0 0 0 4px rgba(214, 48, 49, 0.2);
+        }
+
+        .input-group-icon {
+            position: relative;
+        }
+
+            .input-group-icon i {
+                position: absolute;
+                top: 50%;
+                right: 20px;
+                transform: translateY(-50%);
+                color: #999;
+                z-index: 10;
+            }
+
+        #togglePassword {
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+            #togglePassword:hover {
+                color: #ffbe33;
+            }
+
+        .btn-login {
+            background: #ffbe33;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(230, 156, 0, 0.3);
+        }
+
+            .btn-login:hover {
+                background: #e69c00;
+                transform: translateY(-2px);
+            }
+
+        .btn-back-home {
+            position: absolute;
+            top: 50%;
+            left: -80px;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+            .btn-back-home:hover {
+                background: #ffbe33;
+                border-color: #ffbe33;
+                color: #fff;
+                transform: translateY(-50%) scale(1.1);
+            }
+
+        .register-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+            .register-section a {
+                color: #ffbe33;
+                font-weight: 700;
+                text-decoration: none;
+                margin-left: 5px;
+            }
+
+        .admin-mode .register-section {
+            display: none;
+        }
+
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+        }
+
+        .shake-element {
+            animation: shake 0.3s;
+        }
+
+        @@media (max-width: 768px) {
+            .btn-back-home {
+                left: 0;
+                top: -60px;
+                transform: none;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .login-card {
+                margin: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="bgOverlay"></div>
+
+    <div class="login-wrapper" id="loginWrapper">
+        <a href="@Url.Action("Index", "Home")" class="btn-back-home" title="Về trang chủ">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+        <div class="login-card animate__animated animate__fadeInUp">
+            <div class="brand-logo" id="brandLogo" title="Nhấn 2 lần để mở Admin">Foodie</div>
+
+            <h5 class="fw-bold text-dark mb-4" id="loginTitle">Đăng nhập Khách hàng</h5>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger p-2 mb-3" style="font-size: 14px; border-radius: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                </div>
+            }
+
+            @using (Html.BeginForm("Index", "Login", FormMethod.Post, new { autocomplete = "off" }))
+            {
+                <input type="hidden" name="loginMode" id="loginModeInput" value="customer" />
+
+                <div class="input-group-icon">
+                    <input type="text" name="username" id="usernameInput" class="form-control"
+                           placeholder="Tên đăng nhập"
+                           value="@displayUser"
+                           autocomplete="off"
+                           @Html.Raw(antiAutofill) required />
+                    <i class="fas fa-user" style="pointer-events: none;"></i>
+                </div>
+
+                <div class="input-group-icon">
+                    <input type="password" name="password" id="id_password" class="form-control"
+                           placeholder="Mật khẩu"
+                           value="@prePass"
+                           autocomplete="new-password"
+                           @Html.Raw(antiAutofill) required />
+                    <i class="far fa-eye" id="togglePassword" title="Hiện/Ẩn mật khẩu"></i>
+                </div>
+
+                <div class="text-end mb-3">
+                    <a href="#" style="font-size: 13px; color: #888; text-decoration: none;">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="btn btn-login" id="btnLogin">
+                    Đăng Nhập
+                </button>
+            }
+
+            <div class="register-section">
+                Bạn là khách hàng mới?
+                <a href="@Url.Action("DangKy", "Login")">Đăng ký ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // --- 1. XỬ LÝ ẨN/HIỆN MẬT KHẨU ---
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#id_password');
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        // --- 2. XỬ LÝ CHUYỂN CHẾ ĐỘ ADMIN/CUSTOMER ---
+        const brandLogo = document.getElementById('brandLogo');
+        const loginWrapper = document.getElementById('loginWrapper');
+        const loginTitle = document.getElementById('loginTitle');
+        const usernameInput = document.getElementById('usernameInput');
+        const btnLogin = document.getElementById('btnLogin');
+        const bgOverlay = document.getElementById('bgOverlay');
+        const loginModeInput = document.getElementById('loginModeInput');
+
+        let clickCount = 0;
+        let clickTimer;
+
+        brandLogo.addEventListener('click', function () {
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+
+            if (clickCount === 2) {
+                toggleAdminMode();
+                clickCount = 0;
+            }
+        });
+
+        function toggleAdminMode() {
+            loginWrapper.classList.toggle('admin-mode');
+            loginWrapper.classList.add('shake-element');
+            setTimeout(() => { loginWrapper.classList.remove('shake-element'); }, 300);
+
+            if (loginWrapper.classList.contains('admin-mode')) {
+                // Admin Mode
+                brandLogo.style.color = "#d63031";
+                loginTitle.innerText = "Cổng Quản Trị Viên";
+                usernameInput.placeholder = "Mã nhân viên / Admin";
+                btnLogin.innerText = "Truy cập quản trị";
+                bgOverlay.style.background = "rgba(50, 0, 0, 0.8)";
+                if (loginModeInput) loginModeInput.value = "admin";
+            } else {
+                // Customer Mode
+                brandLogo.style.color = "#ffbe33";
+                loginTitle.innerText = "Đăng nhập Khách hàng";
+                usernameInput.placeholder = "Tên đăng nhập";
+                btnLogin.innerText = "Đăng Nhập";
+                bgOverlay.style.background = "rgba(0, 0, 0, 0.6)";
+                if (loginModeInput) loginModeInput.value = "customer";
+            }
+
+            // Xóa input khi chuyển chế độ
+            usernameInput.value = "";
+            password.value = "";
+        }
+
+        // --- 3. HIỂN THỊ THÔNG BÁO (Gộp chung) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // A. Thông báo Đăng Ký thành công
+            var regMsg = '@Html.Raw(successMsg)';
+            if (regMsg && regMsg.length > 0) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Chúc mừng!',
+                    text: regMsg,
+                    confirmButtonColor: '#ffbe33',
+                    confirmButtonText: 'Đăng nhập ngay'
+                });
+            }
+
+            // B. Thông báo Đăng Nhập thành công
+            var loginSuccess = '@isLoginSuccess'.toLowerCase() === 'true';
+            if (loginSuccess) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: '@Html.Raw(welcomeMsg)',
+                    showConfirmButton: false,
+                    timer: 1600,
+                    timerProgressBar: true,
+                    willClose: () => {
+                        window.location.href = '@Html.Raw(redirectUrl)';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

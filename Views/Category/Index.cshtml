@@ -1,0 +1,180 @@
+﻿@model IEnumerable<FastFood.Models.LoaiSanPham>
+
+@{
+    ViewBag.Title = "Quản Lý Danh Mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<style>
+    /* CSS Style Foodie */
+    .card-header-custom {
+        background: linear-gradient(45deg, #ffbe33, #e69c00);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .thumb-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 2px solid #fff;
+    }
+
+    .badge-status {
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-active {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .badge-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 2px;
+    }
+
+    .btn-edit {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+
+        .btn-edit:hover {
+            background: #0d47a1;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+        .btn-delete:hover {
+            background: #c62828;
+            color: white;
+        }
+
+    /* Fix lỗi input thừa của SweetAlert trên BS5 */
+    .swal2-popup .swal2-select,
+    .swal2-popup .swal2-input,
+    .swal2-popup .swal2-file,
+    .swal2-popup .swal2-textarea {
+        display: none !important;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="card shadow border-0" style="border-radius: 15px;">
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i> DANH SÁCH DANH MỤC</h5>
+
+            <a href="@Url.Action("Create", "Category")" class="btn btn-light text-warning fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-plus me-1"></i> Thêm Mới
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead class="bg-light text-secondary">
+                        <tr>
+                            <th class="ps-4">Hình ảnh</th>
+                            <th>Tên Danh Mục</th>
+                            <th class="text-center">Trạng Thái</th>
+                            <th>Ngày Tạo</th>
+                            <th class="text-end pe-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "/Images/default.png" : item.HinhAnh)"
+                                             class="thumb-img" onerror="this.src='https://via.placeholder.com/60'" />
+                                    </td>
+                                    <td class="fw-bold">@item.TenLoaiSP</td>
+                                    <td class="text-center">
+                                        @if (item.TrangThai == true)
+                                        {
+                                            <span class="badge badge-status badge-active">Hiển thị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-status badge-inactive">Đã ẩn</span>
+                                        }
+                                    </td>
+                                    <td class="text-muted small">
+                                        @(item.NgayTao.HasValue ? item.NgayTao.Value.ToString("dd/MM/yyyy") : "")
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="@Url.Action("Edit", "Category", new { id = item.MaLoaiSP })" class="btn-action btn-edit" title="Sửa">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        <button onclick="confirmDelete(@item.MaLoaiSP)" class="btn-action btn-delete" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5" class="text-center py-4">Chưa có dữ liệu</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Xóa danh mục này?',
+            text: "Dữ liệu sẽ không thể khôi phục!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d63031',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Category/Delete/' + id;
+            }
+        })
+    }
+
+    @if(TempData["SuccessMessage"] != null) {
+        <text>
+            Swal.fire({ icon: 'success', title: 'Thành công', text: '@Html.Raw(TempData["SuccessMessage"])', timer: 2000, showConfirmButton: false });
+        </text>
+    }
+</script>
