@@ -7,29 +7,35 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 
 <div class="container-fluid pt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold text-dark mb-0">
-            <i class="fas fa-chart-pie me-2 text-primary"></i>Báo Cáo Chi Tiết
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-dark mb-3 mb-md-0">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>Báo Cáo Thống Kê
         </h4>
+
+        <form method="get" action="@Url.Action("Index", "Report")" class="d-flex shadow-sm p-2 bg-white rounded">
+            <div class="input-group me-2">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                <input type="date" name="fromDate" class="form-control border-start-0 ps-0" value="@ViewBag.FromDate" required title="Từ ngày">
+            </div>
+            <div class="align-self-center mx-2 text-muted fw-bold">-</div>
+            <div class="input-group me-2">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                <input type="date" name="toDate" class="form-control border-start-0 ps-0" value="@ViewBag.ToDate" required title="Đến ngày">
+            </div>
+            <button type="submit" class="btn btn-primary fw-bold px-3"><i class="fas fa-filter me-1"></i> Lọc</button>
+        </form>
     </div>
 
     <div class="row g-4 mb-4">
-
         <div class="col-xl-3 col-md-6">
             <div class="card border-start border-success border-4 shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row g-0 align-items-center">
                         <div class="col me-2">
-                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                Tổng Doanh Thu
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-dark">
-                                @String.Format(viVN, "{0:N0} đ", ViewBag.TotalRevenue)
-                            </div>
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">Tổng Doanh Thu</div>
+                            <div class="h5 mb-0 fw-bold text-dark">@String.Format(viVN, "{0:N0} đ", ViewBag.TotalRevenue)</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-secondary"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-dollar-sign fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
@@ -40,16 +46,10 @@
                 <div class="card-body">
                     <div class="row g-0 align-items-center">
                         <div class="col me-2">
-                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                Tổng Đơn Hàng
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-dark">
-                                @ViewBag.TotalOrders
-                            </div>
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">Tổng Đơn Hàng</div>
+                            <div class="h5 mb-0 fw-bold text-dark">@ViewBag.TotalOrders</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar fa-2x text-secondary"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-shopping-bag fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
@@ -60,16 +60,10 @@
                 <div class="card-body">
                     <div class="row g-0 align-items-center">
                         <div class="col me-2">
-                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                Khách Hàng
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-dark">
-                                @ViewBag.TotalUsers
-                            </div>
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">Khách Hàng Mới</div>
+                            <div class="h5 mb-0 fw-bold text-dark">@ViewBag.TotalUsers</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-secondary"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-users fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
@@ -80,16 +74,10 @@
                 <div class="card-body">
                     <div class="row g-0 align-items-center">
                         <div class="col me-2">
-                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                Phản Hồi
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-dark">
-                                @ViewBag.TotalFeedbacks
-                            </div>
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">Phản Hồi Mới</div>
+                            <div class="h5 mb-0 fw-bold text-dark">@ViewBag.TotalFeedbacks</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-comments fa-2x text-secondary"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-comments fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
@@ -100,7 +88,7 @@
         <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white">
-                    <h6 class="m-0 fw-bold text-primary">Biểu Đồ Doanh Thu (7 Ngày)</h6>
+                    <h6 class="m-0 fw-bold text-primary">Biểu Đồ Doanh Thu</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="position: relative; height: 350px; width: 100%;">
@@ -123,17 +111,20 @@
             </div>
         </div>
     </div>
-
 </div>
 
 @section scripts {
     <script>
-        // Cấu hình font chữ mặc định cho Chart.js để khớp với Bootstrap 5
+        // Cấu hình Chart.js
         Chart.defaults.global.defaultFontFamily = 'Nunito, -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
         Chart.defaults.global.defaultFontColor = '#858796';
 
+        // Lấy giá trị ngày từ ViewBag để truyền vào API
+        var fromDateVal = '@ViewBag.FromDate';
+        var toDateVal = '@ViewBag.ToDate';
+
         // --- 1. BIỂU ĐỒ DOANH THU ---
-        $.get('@Url.Action("GetRevenueChartData", "Report")', function(res) {
+        $.get('@Url.Action("GetRevenueChartData", "Report")', { fromDate: fromDateVal, toDate: toDateVal }, function(res) {
             var ctx = document.getElementById("myAreaChart");
             var myLineChart = new Chart(ctx, {
                 type: 'line',
@@ -206,7 +197,7 @@
         });
 
         // --- 2. BIỂU ĐỒ SẢN PHẨM ---
-        $.get('@Url.Action("GetTopProductsChartData", "Report")', function(res) {
+        $.get('@Url.Action("GetTopProductsChartData", "Report")', { fromDate: fromDateVal, toDate: toDateVal }, function(res) {
             var ctx = document.getElementById("myPieChart");
             var myPieChart = new Chart(ctx, {
                 type: 'doughnut',

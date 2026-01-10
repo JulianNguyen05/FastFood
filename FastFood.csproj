@@ -215,10 +215,6 @@
     <Content Include="Images\Login.jpg" />
     <Content Include="Images\No_image.png" />
     <Content Include="Images\empty-cart.png" />
-    <Content Include="Images\Product\0b2ee7dd-b2c7-4cec-92c0-6589e56810e9.png" />
-    <Content Include="Images\Product\2251e62e-8030-4e5f-b8c9-a40eb94296eb.png" />
-    <Content Include="Images\Product\2df4a243-671c-4c79-b5bb-b6b3e33da285.png" />
-    <Content Include="Images\Product\4e253073-8772-43ce-8901-52a694c875d2.png" />
     <Content Include="Models\Model1.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>Model1.edmx</DependentUpon>
@@ -257,8 +253,6 @@
     <Content Include="Content\responsive.css" />
     <Content Include="Content\style.css" />
     <Content Include="Images\about-img.png" />
-    <Content Include="Images\Categories\f1.png" />
-    <Content Include="Images\Categories\f8.png" />
     <Content Include="Images\favicon.png" />
     <Content Include="Images\hero-bg.jpg" />
     <Content Include="Scripts\custom.js" />
@@ -305,9 +299,12 @@
     <Content Include="Views\Contacts\Index.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Report\Index.cshtml" />
+    <Content Include="Views\Menu\Details.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Images\Categories\" />
+    <Folder Include="Images\Product\" />
     <Folder Include="Images\User\" />
   </ItemGroup>
   <ItemGroup>

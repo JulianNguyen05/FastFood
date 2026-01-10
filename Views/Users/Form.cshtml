@@ -132,7 +132,17 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="fw-bold form-label">Tên Đăng Nhập <span class="text-danger">*</span></label>
-                                    @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control", @required = "required", @readonly = isEdit ? "readonly" : null, @placeholder = "Username..." } })
+                                    @if (isEdit)
+                                    {
+                                        @* Trường hợp CẬP NHẬT: Khóa ô nhập (readonly) để không cho sửa username *@
+                                        @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control bg-light", @readonly = "readonly" } })
+                                    }
+                                    else
+                                    {
+                                        @* Trường hợp THÊM MỚI: Cho phép nhập bình thường *@
+                                        @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Nhập tên đăng nhập...", autocomplete = "off" } })
+                                        @Html.ValidationMessageFor(model => model.TenDangNhap, "", new { @class = "text-danger small" })
+                                    }
                                 </div>
 
                                 <div class="col-md-6">

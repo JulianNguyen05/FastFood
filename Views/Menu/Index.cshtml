@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<FastFood.Models.LoaiSanPham>
 @{
-    ViewBag.Title = "Thực Đơn - Foodie";
+    ViewBag.Title = "Thực Đơn - FastFood";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
@@ -71,32 +71,44 @@
         border-radius: 10px !important;
     }
 
-    /* --- RESPONSIVE --- */
-    @@media (max-width: 768px) {
-        .search_form_container {
-            justify-content: center !important;
-            margin-bottom: 20px;
-        }
-    }
-
-    /* --- BOOTSTRAP 5 CARD TWEAKS --- */
+    /* --- PRODUCT CARD STYLING --- */
     .box {
         background: #fff;
-        border-radius: 15px; /* Bo tròn box */
+        border-radius: 15px;
         overflow: hidden;
         transition: transform 0.3s ease;
+        height: 100%; /* Giúp các card bằng nhau */
     }
 
-    /* Hiệu ứng hover nhẹ cho sản phẩm */
-    .box:hover {
-        transform: translateY(-5px);
+        .box:hover {
+            transform: translateY(-5px);
+        }
+
+    .img-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        min-height: 250px; /* Chiều cao cố định cho vùng ảnh */
+        background: #f8f9fa;
+    }
+
+        .img-box img {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            transition: 0.3s;
+        }
+
+    .box:hover .img-box img {
+        transform: scale(1.05);
     }
 </style>
 
 <section class="search_section">
     <div class="container">
         <div class="row">
-            <div class="col-12 d-flex justify-content-end search_form_container">
+            <div class="col-12 d-flex justify-content-center justify-content-md-end mb-3 mb-md-0">
                 <form action="@Url.Action("Index", "Menu")" method="get" class="w-100" style="max-width: 350px;">
                     <div class="search_box animate__animated animate__fadeInRight">
                         <input type="text" name="search" class="search_input"
@@ -140,27 +152,32 @@
                         {
                             <div class="col-sm-6 col-lg-4 all cat-@cat.MaLoaiSP">
                                 <div class="box shadow-sm rounded">
-                                    <div>
-                                        <div class="img-box">
+                                    <div class="img-box">
+                                        @* Thẻ a bao quanh ảnh, thêm d-block để full width *@
+                                        <a href="@Url.Action("Details", "Menu", new { id = item.MaSanPham })" class="d-block w-100 h-100 text-center">
                                             <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "/Images/default-food.png" : item.HinhAnh)"
                                                  alt="@item.TenSanPham"
                                                  class="img-fluid"
-                                                 onerror="this.src='https://via.placeholder.com/300x300?text=Foodie'">
-                                        </div>
-                                        <div class="detail-box p-3">
-                                            <h5>@item.TenSanPham</h5>
-                                            <p class="text-muted small">
-                                                @(item.MoTa != null && item.MoTa.Length > 70 ? item.MoTa.Substring(0, 70) + "..." : item.MoTa)
-                                            </p>
-                                            <div class="options d-flex justify-content-between align-items-center mt-3">
-                                                <h6 class="mb-0 text-warning fw-bold">
-                                                    @string.Format("{0:N0} đ", item.GiaTien)
-                                                </h6>
+                                                 onerror="this.src='https://via.placeholder.com/300x300?text=FastFood'">
+                                        </a>
+                                    </div>
+                                    <div class="detail-box p-3">
+                                        <h5>
+                                            <a href="@Url.Action("Details", "Menu", new { id = item.MaSanPham })" class="text-white text-decoration-none fw-bold">
+                                                @item.TenSanPham
+                                            </a>
+                                        </h5>
 
-                                                <a href="javascript:void(0);" onclick="addToCart(@item.MaSanPham)" class="btn btn-warning rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fa fa-shopping-cart"></i>
-                                                </a>
-                                            </div>
+                                        <div class="options d-flex justify-content-between align-items-center mt-3">
+                                            <h6 class="mb-0 text-warning fw-bold">
+                                                @string.Format("{0:N0} đ", item.GiaTien)
+                                            </h6>
+
+                                            <a href="javascript:void(0);" onclick="addToCart(@item.MaSanPham)"
+                                               class="btn btn-warning rounded-circle text-white d-flex align-items-center justify-content-center shadow-sm"
+                                               style="width: 40px; height: 40px;">
+                                                <i class="fa fa-shopping-cart"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -224,7 +241,7 @@
                     if (res.success) {
                         // 1. Update Badge
                         $('#headerCartCount').text(res.totalItems);
-                        $('#headerCartCount').show(); // Đảm bảo hiện nếu đang ẩn
+                        $('#headerCartCount').show();
 
                         // 2. Animation Effect
                         $('.cart_link').addClass('animate__animated animate__rubberBand');

@@ -11,51 +11,85 @@ namespace FastFood.Controllers.Admin
         private FastFoodDBEntities2 db = new FastFoodDBEntities2();
 
         // --- 1. VIEW BÁO CÁO (HTML) ---
-        public ActionResult Index()
+        // Thêm tham số fromDate, toDate để nhận dữ liệu từ bộ lọc
+        public ActionResult Index(string fromDate, string toDate)
         {
             if (Session["admin"] == null)
             {
                 return RedirectToAction("Index", "Login", new { area = "User" });
             }
 
-            // --- Thống kê số liệu tổng quan (Cards) ---
+            // Mặc định: Lấy 30 ngày gần nhất nếu không chọn
+            DateTime dtFrom = DateTime.Today.AddDays(-29);
+            DateTime dtTo = DateTime.Now;
 
-            // Doanh thu: Cần ép kiểu (decimal?) và dùng (?? 0) để xử lý trường hợp null (chưa có đơn nào)
-            var totalRevenue = db.HoaDons
+            if (!string.IsNullOrEmpty(fromDate)) DateTime.TryParse(fromDate, out dtFrom);
+            if (!string.IsNullOrEmpty(toDate))
+            {
+                DateTime.TryParse(toDate, out dtTo);
+                // Chỉnh về cuối ngày (23:59:59) để lấy trọn vẹn dữ liệu ngày kết thúc
+                dtTo = dtTo.Date.AddDays(1).AddTicks(-1);
+            }
+
+            // Lưu lại ngày đã chọn để hiển thị lại trên giao diện
+            ViewBag.FromDate = dtFrom.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = dtTo.ToString("yyyy-MM-dd");
+
+            // --- Thống kê số liệu tổng quan (Cards) theo khoảng thời gian ---
+            var queryOrders = db.HoaDons.Where(h => h.NgayDatHang >= dtFrom && h.NgayDatHang <= dtTo);
+
+            // 1. Tổng doanh thu (Chỉ tính đơn hoàn tất trong khoảng thời gian này)
+            var totalRevenue = queryOrders
                 .Where(h => h.TinhTrang == "Hoàn tất")
                 .Sum(h => (decimal?)h.TongTien) ?? 0;
 
+            // 2. Tổng đơn hàng (Tất cả trạng thái)
+            var totalOrders = queryOrders.Count();
+
+            // 3. Khách hàng mới (Đăng ký trong khoảng thời gian này)
+            var totalUsers = db.KhachHangs
+                .Count(u => u.NgayTao >= dtFrom && u.NgayTao <= dtTo);
+
+            // 4. Phản hồi mới
+            var totalFeedbacks = db.LienHes
+                .Count(c => c.NgayTao >= dtFrom && c.NgayTao <= dtTo);
+
             ViewBag.TotalRevenue = totalRevenue;
-            ViewBag.TotalOrders = db.HoaDons.Count();
-            ViewBag.TotalUsers = db.KhachHangs.Count();
-            ViewBag.TotalFeedbacks = db.LienHes.Count();
+            ViewBag.TotalOrders = totalOrders;
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.TotalFeedbacks = totalFeedbacks;
 
             return View();
         }
 
         // --- 2. API DỮ LIỆU BIỂU ĐỒ (JSON) ---
 
-        // API 1: Biểu đồ doanh thu 7 ngày qua
+        // API 1: Biểu đồ doanh thu (Có lọc ngày)
         [HttpGet]
-        public ActionResult GetRevenueChartData()
+        public ActionResult GetRevenueChartData(string fromDate, string toDate)
         {
-            var sevenDaysAgo = DateTime.Today.AddDays(-6);
+            DateTime dtFrom = DateTime.Today.AddDays(-29);
+            DateTime dtTo = DateTime.Now;
 
-            // BƯỚC 1: Truy vấn SQL (Lấy dữ liệu thô)
+            if (!string.IsNullOrEmpty(fromDate)) DateTime.TryParse(fromDate, out dtFrom);
+            if (!string.IsNullOrEmpty(toDate))
+            {
+                DateTime.TryParse(toDate, out dtTo);
+                dtTo = dtTo.Date.AddDays(1).AddTicks(-1);
+            }
+
+            // Lấy dữ liệu và nhóm theo ngày
             var rawData = db.HoaDons
-                .Where(h => h.TinhTrang == "Hoàn tất" && h.NgayDatHang >= sevenDaysAgo)
-                // DbFunctions.TruncateTime: Giúp SQL so sánh chỉ ngày tháng, bỏ qua giờ phút giây
+                .Where(h => h.TinhTrang == "Hoàn tất" && h.NgayDatHang >= dtFrom && h.NgayDatHang <= dtTo)
                 .GroupBy(h => DbFunctions.TruncateTime(h.NgayDatHang))
                 .Select(g => new
                 {
                     Date = g.Key,
                     Revenue = g.Sum(h => (decimal?)h.TongTien) ?? 0
                 })
-                .OrderBy(x => x.Date) // Sắp xếp theo ngày tăng dần ngay từ SQL
-                .ToList(); // Thực thi câu lệnh SQL tại đây
+                .OrderBy(x => x.Date)
+                .ToList();
 
-            // BƯỚC 2: Xử lý bộ nhớ (Format dữ liệu cho ChartJS)
-            // Phải tách ra bước 2 vì SQL không hiểu hàm .ToString("dd/MM")
             var chartData = rawData.Select(x => new
             {
                 Date = x.Date.Value.ToString("dd/MM"),
@@ -69,20 +103,30 @@ namespace FastFood.Controllers.Admin
             }, JsonRequestBehavior.AllowGet);
         }
 
-        // API 2: Biểu đồ Top 5 sản phẩm bán chạy
+        // API 2: Biểu đồ Top 5 sản phẩm bán chạy (Có lọc ngày)
         [HttpGet]
-        public ActionResult GetTopProductsChartData()
+        public ActionResult GetTopProductsChartData(string fromDate, string toDate)
         {
+            DateTime dtFrom = DateTime.Today.AddDays(-29);
+            DateTime dtTo = DateTime.Now;
+
+            if (!string.IsNullOrEmpty(fromDate)) DateTime.TryParse(fromDate, out dtFrom);
+            if (!string.IsNullOrEmpty(toDate))
+            {
+                DateTime.TryParse(toDate, out dtTo);
+                dtTo = dtTo.Date.AddDays(1).AddTicks(-1);
+            }
+
             var topProducts = db.ChiTietHoaDons
-                .Where(d => d.HoaDon.TinhTrang == "Hoàn tất") // Chỉ tính đơn đã bán thành công
-                .GroupBy(d => d.SanPham.TenSanPham)           // Gom nhóm theo tên SP
+                .Where(d => d.HoaDon.TinhTrang == "Hoàn tất" && d.HoaDon.NgayDatHang >= dtFrom && d.HoaDon.NgayDatHang <= dtTo)
+                .GroupBy(d => d.SanPham.TenSanPham)
                 .Select(g => new
                 {
                     ProductName = g.Key,
                     Quantity = g.Sum(x => x.SoLuong)
                 })
-                .OrderByDescending(x => x.Quantity)           // Sắp xếp giảm dần
-                .Take(5)                                      // Lấy 5 dòng đầu
+                .OrderByDescending(x => x.Quantity)
+                .Take(5)
                 .ToList();
 
             return Json(new

@@ -59,5 +59,22 @@ namespace FastFood.Controllers.User
             if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
+
+        public ActionResult Details(int id)
+        {
+            var product = db.SanPhams.Find(id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Gợi ý món ăn cùng loại (Optional - để trang chi tiết đỡ trống)
+            ViewBag.RelatedProducts = db.SanPhams
+                .Where(p => p.MaLoaiSP == product.MaLoaiSP && p.MaSanPham != id && p.TrangThai == true)
+                .Take(4)
+                .ToList();
+
+            return View(product);
+        }
     }
 }

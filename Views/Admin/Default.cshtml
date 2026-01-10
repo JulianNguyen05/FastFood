@@ -5,7 +5,7 @@
 }
 
 <style>
-    /* CSS Riêng cho Dashboard (Giữ nguyên vì không ảnh hưởng bởi version Bootstrap) */
+    /* CSS Riêng cho Dashboard */
     .card-dashboard {
         border: none;
         border-radius: 15px;
@@ -102,14 +102,24 @@
 </style>
 
 <div class="container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold text-dark mb-1">Tổng quan tình hình kinh doanh</h4>
+            <small class="text-muted">Dữ liệu từ: <span class="fw-bold text-primary">@ViewBag.ShowDateRange</span></small>
         </div>
-        <div class="bg-white p-2 rounded shadow-sm border">
-            <i class="far fa-calendar-alt text-primary me-2"></i>
-            <span class="fw-bold text-dark">@DateTime.Now.ToString("dd/MM/yyyy")</span>
-        </div>
+
+        <form method="get" action="@Url.Action("Default", "Admin")" class="d-flex shadow-sm p-2 bg-white rounded mt-3 mt-md-0">
+            <div class="input-group me-2">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                <input type="date" name="fromDate" class="form-control border-start-0 ps-0" value="@ViewBag.FromDate" required title="Từ ngày">
+            </div>
+            <div class="align-self-center mx-2 text-muted fw-bold">-</div>
+            <div class="input-group me-2">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                <input type="date" name="toDate" class="form-control border-start-0 ps-0" value="@ViewBag.ToDate" required title="Đến ngày">
+            </div>
+            <button type="submit" class="btn btn-primary fw-bold px-3"><i class="fas fa-filter me-1"></i> Lọc</button>
+        </form>
     </div>
 
     <div class="row">
@@ -155,7 +165,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-dashboard bg-gradient-info shadow h-100">
                 <div class="card-body">
-                    <div class="card-text-label">Khách Hàng</div>
+                    <div class="card-text-label">Khách Hàng Mới</div>
                     <div class="card-text-value">@ViewBag.UserCount</div>
                     <a href="@Url.Action("Index", "Users")" class="card-link">
                         Quản lý người dùng <i class="fas fa-arrow-right ms-1"></i>
@@ -170,7 +180,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-dashboard bg-gradient-dark shadow h-100">
                 <div class="card-body">
-                    <div class="card-text-label">Sản Phẩm</div>
+                    <div class="card-text-label">Tổng Sản Phẩm</div>
                     <div class="card-text-value">@ViewBag.ProductCount</div>
                     <a href="@Url.Action("Index", "Product")" class="card-link">
                         Quản lý thực đơn <i class="fas fa-arrow-right ms-1"></i>
@@ -183,7 +193,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-dashboard bg-gradient-indigo shadow h-100">
                 <div class="card-body">
-                    <div class="card-text-label">Danh Mục</div>
+                    <div class="card-text-label">Tổng Danh Mục</div>
                     <div class="card-text-value">@ViewBag.CategoryCount</div>
                     <a href="@Url.Action("Index", "Category")" class="card-link">
                         Quản lý loại <i class="fas fa-arrow-right ms-1"></i>

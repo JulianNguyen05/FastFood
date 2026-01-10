@@ -13,7 +13,6 @@
         padding: 15px 25px;
     }
 
-    /* Giới hạn độ dài nội dung hiển thị trong bảng */
     .text-truncate-custom {
         max-width: 200px;
         white-space: nowrap;
@@ -30,7 +29,12 @@
         justify-content: center;
         border: none;
         margin: 0 2px;
+        transition: 0.3s;
     }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
 
     .btn-view {
         background: #e0f2f1;
@@ -47,7 +51,6 @@
         color: #c62828;
     }
 
-    /* Style cho nút trạng thái */
     .btn-status {
         width: 40px;
         height: 25px;
@@ -116,9 +119,12 @@
                                         <i class="fas fa-reply"></i>
                                     </a>
 
-                                    <form action="@Url.Action("Delete", "Contacts")" method="post" style="display:inline;">
+                                    @* [UPDATE] Form xóa chuyên nghiệp *@
+                                    <form id="deleteForm-@item.MaLienHe" action="@Url.Action("Delete", "Contacts")" method="post" style="display:inline;">
                                         <input type="hidden" name="id" value="@item.MaLienHe" />
-                                        <button type="submit" class="btn-action btn-delete" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tin nhắn này?');">
+                                        @* Dùng type="button" để không submit ngay *@
+                                        <button type="button" class="btn-action btn-delete" title="Xóa"
+                                                onclick="confirmDelete(@item.MaLienHe)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -141,6 +147,7 @@
     </div>
 </div>
 
+@* Modal Chi tiết *@
 <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -154,17 +161,14 @@
                     <h5 class="fw-bold mb-0 text-dark" id="mName"></h5>
                     <span class="text-primary" id="mEmail"></span>
                 </div>
-
                 <div class="mb-3">
                     <small class="text-muted">Chủ đề:</small>
                     <p class="fw-bold text-dark" id="mSubject"></p>
                 </div>
-
                 <div class="p-3 bg-light rounded">
                     <small class="text-muted mb-1 d-block">Nội dung:</small>
                     <p class="mb-0 text-dark" id="mContent" style="white-space: pre-line;"></p>
                 </div>
-
                 <div class="text-end mt-2">
                     <small class="text-muted" id="mDate"></small>
                 </div>
@@ -178,45 +182,55 @@
 
 @section scripts {
     <script>
-        // Hàm hiển thị chi tiết tin nhắn
+        // 1. Hàm Xóa chuyên nghiệp (SweetAlert2)
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Xóa phản hồi này?',
+                text: "Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa ngay',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Nếu người dùng đồng ý xóa -> Submit form tương ứng
+                    $('#deleteForm-' + id).submit();
+                }
+            });
+        }
+
+        // 2. Hàm hiển thị chi tiết
         function showContact(name, email, subject, content, date) {
             $('#mName').text(name);
             $('#mEmail').text(email);
             $('#mSubject').text(subject);
             $('#mContent').text(content);
             $('#mDate').text('Gửi lúc: ' + date);
-
-            // Dùng jQuery gọi modal BS5 vẫn ok nếu đã load bootstrap.bundle.js
             $('#contactModal').modal('show');
         }
 
-        // Hàm xử lý Bật/Tắt hiển thị (AJAX)
+        // 3. Hàm Bật/Tắt hiển thị
         function toggleStatus(btn, id) {
             var url = '@Url.Action("ToggleStatus", "Contacts")';
-
             $.post(url, { id: id }, function (res) {
                 if (res.success) {
                     var icon = $(btn).find('i');
                     if (res.status) {
-                        // Trạng thái: Hiện
                         $(btn).removeClass('btn-secondary').addClass('btn-success');
                         icon.removeClass('fa-minus').addClass('fa-check');
-
-                        const Toast = Swal.mixin({
-                            toast: true, position: 'top-end', showConfirmButton: false, timer: 1500
-                        });
-                        Toast.fire({ icon: 'success', title: 'Đã hiển thị lên trang chủ' });
+                        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 })
+                            .fire({ icon: 'success', title: 'Đã hiển thị lên trang chủ' });
                     } else {
-                        // Trạng thái: Ẩn
                         $(btn).removeClass('btn-success').addClass('btn-secondary');
                         icon.removeClass('fa-check').addClass('fa-minus');
                     }
                 } else {
-                    var msg = res.message ? res.message : 'Không thể cập nhật trạng thái';
-                    Swal.fire('Lỗi', msg, 'error');
+                    Swal.fire('Lỗi', res.message || 'Không thể cập nhật', 'error');
                 }
-            }).fail(function (xhr, status, error) {
-                Swal.fire('Lỗi Server', 'Mã lỗi: ' + xhr.status + ' - ' + xhr.statusText, 'error');
+            }).fail(function () {
+                Swal.fire('Lỗi Server', 'Không kết nối được đến máy chủ', 'error');
             });
         }
     </script>

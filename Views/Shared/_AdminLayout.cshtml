@@ -126,15 +126,15 @@
         string role = "";
         string showName = "Guest";
 
-        if (Session["admin"] != null)
-        {
-            role = "Admin";
-            showName = Session["admin"].ToString();
-        }
-        else if (Session["staffId"] != null)
+        if (Session["staffId"] != null)
         {
             role = Session["staffRole"]?.ToString();
             showName = Session["staffName"]?.ToString();
+        }
+        else if (Session["admin"] != null)
+        {
+            role = "Admin";
+            showName = Session["admin"].ToString();
         }
     }
 
@@ -161,7 +161,7 @@
                     </li>
                 }
 
-                @if (!string.IsNullOrEmpty(role))
+                @if (!string.IsNullOrEmpty(role) || role == "NV Giao hàng" || role == "NV Duyệt")
                 {
                     <li class="@(currentCtrl == "Order" || currentAction == "OrderStatus" ? "active" : "")">
                         <a href="@Url.Action("OrderStatus", "Order")"><i class="fas fa-shipping-fast"></i> Quản lý Đơn hàng</a>
@@ -179,7 +179,7 @@
                     <li class="@(currentCtrl == "Contacts" ? "active" : "")">
                         <a href="@Url.Action("Index", "Contacts")"><i class="fas fa-envelope"></i> Phản hồi</a>
                     </li>
-                    <li class="@(currentAction == "Report" ? "active" : "")">
+                    <li class="@(currentCtrl == "Report" ? "active" : "")">
                         <a href="@Url.Action("Index", "Report")"><i class="fas fa-chart-line"></i> Báo cáo</a>
                     </li>
                 }

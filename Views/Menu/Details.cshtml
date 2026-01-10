@@ -1,0 +1,194 @@
+﻿@model FastFood.Models.SanPham
+@{
+    ViewBag.Title = Model.TenSanPham;
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    var related = ViewBag.RelatedProducts as List<FastFood.Models.SanPham>;
+}
+
+<style>
+    .product-detail-section {
+        padding: 60px 0;
+    }
+
+    .product-img-box {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        background: #fff;
+        padding: 20px;
+        text-align: center;
+        /* Giúp ảnh căn giữa đẹp hơn */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+    }
+
+        .product-img-box img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            max-height: 400px;
+        }
+
+    .price-tag {
+        font-size: 2rem;
+        font-weight: 700; /* Thay thế font-weight-bold bằng css thuần hoặc class fw-bold */
+        color: #ffbe33;
+        margin: 15px 0;
+    }
+
+    .product-desc {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .btn-cart-lg {
+        background: #ffbe33;
+        color: white;
+        padding: 12px 40px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        border: none;
+        transition: 0.3s;
+    }
+
+        .btn-cart-lg:hover {
+            background: #e69c00;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(230, 156, 0, 0.4);
+            color: #fff;
+        }
+</style>
+
+<section class="product-detail-section">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb bg-transparent p-0">
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("Index", "Home")" class="text-warning text-decoration-none">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("Index", "Menu")" class="text-warning text-decoration-none">Thực đơn</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.TenSanPham</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="product-img-box animate__animated animate__fadeInLeft">
+                    <img src="@(string.IsNullOrEmpty(Model.HinhAnh) ? "/Images/default-food.png" : Model.HinhAnh)"
+                         alt="@Model.TenSanPham"
+                         onerror="this.src='https://via.placeholder.com/500x500?text=FastFood'">
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="detail-box animate__animated animate__fadeInRight">
+                    <h2 class="fw-bold text-dark mb-3">@Model.TenSanPham</h2>
+                    <div class="price-tag">@string.Format("{0:N0} đ", Model.GiaTien)</div>
+
+                    <div class="product-desc mb-4">
+                        <h5 class="text-muted mb-2"><i class="fa fa-align-left me-2"></i>Mô tả món ăn:</h5>
+                        <p>@(string.IsNullOrEmpty(Model.MoTa) ? "Đang cập nhật mô tả..." : Model.MoTa)</p>
+                    </div>
+
+                    <div class="d-flex align-items-center mt-4">
+                        <button onclick="addToCart(@Model.MaSanPham)" class="btn btn-cart-lg shadow-sm">
+                            <i class="fa fa-cart-plus me-2"></i> Thêm Vào Giỏ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (related != null && related.Count > 0)
+        {
+            <div class="related-products mt-5">
+                <h3 class="fw-bold mb-4 border-bottom pb-2">Có thể bạn sẽ thích</h3>
+                <div class="row">
+                    @foreach (var item in related)
+                    {
+                        <div class="col-md-3 col-sm-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <a href="@Url.Action("Details", "Menu", new { id = item.MaSanPham })">
+                                    <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "/Images/default-food.png" : item.HinhAnh)" class="card-img-top p-3" style="height: 200px; object-fit: contain;">
+                                </a>
+                                <div class="card-body text-center">
+                                    <h6 class="card-title fw-bold">
+                                        <a href="@Url.Action("Details", "Menu", new { id = item.MaSanPham })" class="text-dark text-decoration-none">@item.TenSanPham</a>
+                                    </h6>
+                                    <p class="text-warning fw-bold">@string.Format("{0:N0} đ", item.GiaTien)</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Hàm thêm vào giỏ hàng
+        function addToCart(productId) {
+            $.ajax({
+                url: '/Cart/AddToCart',
+                type: 'POST',
+                data: { id: productId },
+                success: function (res) {
+                    if (res.success) {
+                        $('#headerCartCount').text(res.totalItems);
+                        $('#headerCartCount').show();
+
+                        $('.cart_link').addClass('animate__animated animate__rubberBand');
+                        setTimeout(function () {
+                            $('.cart_link').removeClass('animate__animated animate__rubberBand');
+                        }, 1000);
+
+                        Swal.fire({
+                            toast: true, position: 'top-end', showConfirmButton: false,
+                            timer: 3000, timerProgressBar: true,
+                            icon: 'success', title: res.msg,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        });
+                    } else {
+                        if (res.requireLogin) {
+                            Swal.fire({
+                                title: 'Bạn chưa đăng nhập',
+                                text: "Vui lòng đăng nhập để gọi món nhé!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#ffbe33',
+                                confirmButtonText: 'Đăng nhập ngay',
+                                cancelButtonText: 'Để sau'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '/Login/Index';
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                toast: true, position: 'top-end', showConfirmButton: false,
+                                timer: 3000, icon: 'error', title: res.msg
+                            });
+                        }
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        toast: true, position: 'top-end', showConfirmButton: false,
+                        timer: 3000, icon: 'error', title: 'Lỗi kết nối server!'
+                    });
+                }
+            });
+        }
+    </script>
+}
