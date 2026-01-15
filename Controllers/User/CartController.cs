@@ -37,10 +37,8 @@ namespace FastFood.Controllers.User
         {
             if (Session["userId"] == null)
                 return Json(new { success = false, msg = "Bạn cần đăng nhập!", requireLogin = true });
-
             int userId = (int)Session["userId"];
             var cartItem = db.GioHangs.FirstOrDefault(x => x.MaKhachHang == userId && x.MaSanPham == id);
-
             if (cartItem != null)
             {
                 cartItem.SoLuong++; // Nếu đã có -> Tăng số lượng
@@ -57,14 +55,12 @@ namespace FastFood.Controllers.User
                 };
                 db.GioHangs.Add(newItem);
             }
-
             db.SaveChanges();
             UpdateSessionCount(userId); // Cập nhật Badge trên Header
-
             return Json(new
             {
                 success = true,
-                msg = "Đã thêm món ngon vào giỏ! 😋",
+                msg = "Đã thêm món ngon vào giỏ!",
                 totalItems = Session["cartCount"] // Lấy trực tiếp từ Session vừa update
             });
         }

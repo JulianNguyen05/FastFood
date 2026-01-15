@@ -24,8 +24,7 @@ CREATE TABLE SanPham (
     MaLoaiSP INT,
     TrangThai BIT DEFAULT 1,
     NgayTao DATETIME DEFAULT GETDATE(),
-    CONSTRAINT FK_SanPham_Loai
-        FOREIGN KEY (MaLoaiSP) REFERENCES LoaiSanPham(MaLoaiSP)
+    CONSTRAINT FK_SanPham_Loai FOREIGN KEY (MaLoaiSP) REFERENCES LoaiSanPham(MaLoaiSP)
 );
 
 -- 4. Bảng KHÁCH HÀNG (Users)
@@ -45,49 +44,44 @@ CREATE TABLE KhachHang (
 CREATE TABLE NhanVien (
     MaNhanVien INT IDENTITY(1,1) PRIMARY KEY,
     HoTen NVARCHAR(100) NOT NULL,
-	TenDangNhap VARCHAR(50) UNIQUE,
+    TenDangNhap VARCHAR(50) UNIQUE,
     Email VARCHAR(100) UNIQUE,
     SoDienThoai VARCHAR(20),
     MatKhau VARCHAR(255),
-    QuyenSuDung NVARCHAR(50), -- NV Duyệt, NV Giao hàng
+    QuyenSuDung NVARCHAR(50), -- Admin, NV Duyệt, NV Giao hàng
     TrangThai BIT DEFAULT 1
 );
 
--- 6. Bảng GIỎ HÀNG / HÓA ĐƠN (Orders)
+-- 6. Bảng HÓA ĐƠN (Orders)
 CREATE TABLE HoaDon (
     MaHoaDon INT IDENTITY(1,1) PRIMARY KEY,
     SoHoaDon VARCHAR(100) UNIQUE,
     NgayDatHang DATETIME DEFAULT GETDATE(),
     NgayGiaoHang DATETIME,
-    TinhTrang NVARCHAR(50), -- Chờ duyệt, Đang giao, Hoàn tất
+    TinhTrang NVARCHAR(50), -- Chờ duyệt, Đang giao, Hoàn tất, Đã hủy
     MaKhachHang INT,
     MaNVDuyet INT,
     MaNVGiao INT,
-	TongTien DECIMAL(18,2) DEFAULT 0,
-	GhiChuHuy NVARCHAR(MAX),
-	DiaChiGiao NVARCHAR(MAX),
-	SoDienThoaiGiao VARCHAR(20),
-	PhuongThucThanhToan NVARCHAR(50),
-	TrangThaiThanhToan BIT DEFAULT 0,
-    CONSTRAINT FK_HoaDon_KhachHang
-        FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang),
-    CONSTRAINT FK_HoaDon_NVDuyet
-        FOREIGN KEY (MaNVDuyet) REFERENCES NhanVien(MaNhanVien),
-    CONSTRAINT FK_HoaDon_NVGiao
-        FOREIGN KEY (MaNVGiao) REFERENCES NhanVien(MaNhanVien)
+    TongTien DECIMAL(18,2) DEFAULT 0,
+    GhiChuHuy NVARCHAR(MAX),
+    DiaChiGiao NVARCHAR(MAX),
+    SoDienThoaiGiao VARCHAR(20),
+    PhuongThucThanhToan NVARCHAR(50),
+    TrangThaiThanhToan BIT DEFAULT 0,
+    CONSTRAINT FK_HoaDon_KhachHang FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang),
+    CONSTRAINT FK_HoaDon_NVDuyet FOREIGN KEY (MaNVDuyet) REFERENCES NhanVien(MaNhanVien),
+    CONSTRAINT FK_HoaDon_NVGiao FOREIGN KEY (MaNVGiao) REFERENCES NhanVien(MaNhanVien)
 );
 
--- 7. Bảng CHI TIẾT GIỎ HÀNG
+-- 7. Bảng CHI TIẾT HÓA ĐƠN
 CREATE TABLE ChiTietHoaDon (
     MaChiTiet INT IDENTITY(1,1) PRIMARY KEY,
     MaHoaDon INT,
     MaSanPham INT,
     SoLuong INT NOT NULL,
     DonGia DECIMAL(18,2) NOT NULL,
-    CONSTRAINT FK_CTHD_HoaDon
-        FOREIGN KEY (MaHoaDon) REFERENCES HoaDon(MaHoaDon),
-    CONSTRAINT FK_CTHD_SanPham
-        FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham)
+    CONSTRAINT FK_CTHD_HoaDon FOREIGN KEY (MaHoaDon) REFERENCES HoaDon(MaHoaDon),
+    CONSTRAINT FK_CTHD_SanPham FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham)
 );
 
 -- 8. Bảng LIÊN HỆ (Contact)
@@ -96,7 +90,7 @@ CREATE TABLE LienHe (
     HoTen NVARCHAR(100),
     Email VARCHAR(100),
     ChuDe NVARCHAR(200),
-	TrangThai BIT DEFAULT 0,
+    TrangThai BIT DEFAULT 0, -- 0: Chưa xem, 1: Đã xem
     NoiDung NVARCHAR(MAX),
     NgayTao DATETIME DEFAULT GETDATE()
 );
@@ -104,28 +98,16 @@ CREATE TABLE LienHe (
 -- 9. Bảng GIỎ HÀNG (Cart)
 CREATE TABLE GioHang (
     MaGioHang INT IDENTITY(1,1) PRIMARY KEY,
-    MaKhachHang INT NOT NULL, -- Để biết giỏ hàng này của ai
-    MaSanPham INT NOT NULL,   -- Để biết khách chọn món gì
-    SoLuong INT DEFAULT 1 CHECK (SoLuong > 0), -- Số lượng phải lớn hơn 0
-    NgayTao DATETIME DEFAULT GETDATE(), -- Ngày thêm vào giỏ
-
-    -- Tạo khóa ngoại liên kết với bảng KhachHang
-    CONSTRAINT FK_GioHang_KhachHang 
-        FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang)
-        ON DELETE CASCADE, -- Nếu xóa tài khoản khách, xóa luôn giỏ hàng của họ
-
-    -- Tạo khóa ngoại liên kết với bảng SanPham
-    CONSTRAINT FK_GioHang_SanPham 
-        FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham)
-        ON DELETE CASCADE, -- Nếu sản phẩm bị xóa khỏi hệ thống, xóa khỏi giỏ hàng
-
-    -- Ràng buộc duy nhất: Một khách hàng chỉ có 1 dòng cho 1 sản phẩm 
-    -- (Nếu thêm trùng sản phẩm thì chỉ cần tăng số lượng chứ không thêm dòng mới)
+    MaKhachHang INT NOT NULL,
+    MaSanPham INT NOT NULL,
+    SoLuong INT DEFAULT 1 CHECK (SoLuong > 0),
+    NgayTao DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_GioHang_KhachHang FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang) ON DELETE CASCADE,
+    CONSTRAINT FK_GioHang_SanPham FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham) ON DELETE CASCADE,
     CONSTRAINT UQ_GioHang_Khach_Sanpham UNIQUE (MaKhachHang, MaSanPham)
 );
-GO
 
--- 10. Tạo bảng THANH TOÁN (Lưu lịch sử giao dịch)
+-- 10. Bảng THANH TOÁN
 CREATE TABLE ThanhToan (
     MaThanhToan INT IDENTITY(1,1) PRIMARY KEY,
     MaHoaDon INT,
@@ -133,23 +115,19 @@ CREATE TABLE ThanhToan (
     SoTien DECIMAL(18,2),
     PhuongThuc NVARCHAR(50),
     GhiChu NVARCHAR(MAX),
-    
     CONSTRAINT FK_ThanhToan_HoaDon FOREIGN KEY (MaHoaDon) REFERENCES HoaDon(MaHoaDon)
 );
 GO
 
+-- =============================================================
+-- INSERT DỮ LIỆU GIẢ (MOCK DATA)
+-- =============================================================
+-- === PHẦN 1: XÓA DỮ LIỆU CŨ (Nếu muốn làm sạch trước khi test) ===
 
-
-
-
-
-
-
+-- Lưu ý: Thứ tự xóa quan trọng để tránh lỗi Khóa ngoại (Foreign Key)
 USE FastFoodDB;
 GO
 
--- === PHẦN 1: XÓA DỮ LIỆU CŨ (Nếu muốn làm sạch trước khi test) ===
--- Lưu ý: Thứ tự xóa quan trọng để tránh lỗi Khóa ngoại (Foreign Key)
 DELETE FROM ThanhToan;
 DELETE FROM ChiTietHoaDon;
 DELETE FROM GioHang;
@@ -161,6 +139,7 @@ DELETE FROM KhachHang;
 DELETE FROM NhanVien;
 
 -- Reset lại ID tự tăng về 1 (Tùy chọn)
+
 DBCC CHECKIDENT ('LoaiSanPham', RESEED, 0);
 DBCC CHECKIDENT ('SanPham', RESEED, 0);
 DBCC CHECKIDENT ('KhachHang', RESEED, 0);
@@ -169,95 +148,108 @@ DBCC CHECKIDENT ('HoaDon', RESEED, 0);
 DBCC CHECKIDENT ('ChiTietHoaDon', RESEED, 0);
 GO
 
--- === PHẦN 2: TẠO DỮ LIỆU GIẢ ===
+-- 1. Insert LOẠI SẢN PHẨM (10 dòng)
+INSERT INTO LoaiSanPham (TenLoaiSP, HinhAnh, TrangThai) VALUES 
+(N'Combo Gà Rán', '/Images/Categories/combo-ga.png', 1),
+(N'Burger Đặc Biệt', '/Images/Categories/burger.png', 1),
+(N'Mỳ Ý Sốt Kem', '/Images/Categories/spaghetti.png', 1),
+(N'Pizza Hải Sản', '/Images/Categories/pizza.png', 1),
+(N'Thức Uống', '/Images/Categories/drinks.png', 1),
+(N'Tráng Miệng', '/Images/Categories/dessert.png', 1),
+(N'Món Ăn Nhẹ', '/Images/Categories/snack.png', 1),
+(N'Cơm Gà', '/Images/Categories/rice.png', 1),
+(N'Combo Gia Đình', '/Images/Categories/family.png', 1),
+(N'Khuyến Mãi', '/Images/Categories/promo.png', 1);
 
--- 1. Thêm Danh Mục (Categories)
-INSERT INTO LoaiSanPham (TenLoaiSP, TrangThai) VALUES 
-(N'Burger & Sandwich', 1),
-(N'Pizza', 1),
-(N'Gà Rán', 1),
-(N'Đồ Uống', 1),
-(N'Món Ăn Kèm', 1);
+-- 2. Insert SẢN PHẨM (15 dòng)
+INSERT INTO SanPham (TenSanPham, MoTa, GiaTien, SoLuongTon, HinhAnh, MaLoaiSP, TrangThai) VALUES
+(N'Gà Rán Giòn Cay', N'Gà rán tẩm bột chiên giòn vị cay nồng', 35000, 100, '/Images/Products/ga-cay.jpg', 1, 1),
+(N'Combo 1 Người', N'1 Gà rán + 1 Khoai tây + 1 Pepsi', 79000, 50, '/Images/Products/combo1.jpg', 1, 1),
+(N'Burger Bò Phô Mai', N'Burger bò nướng lửa hồng kẹp phô mai', 55000, 80, '/Images/Products/burger-bo.jpg', 2, 1),
+(N'Burger Tôm', N'Burger nhân tôm tươi chiên xù', 60000, 60, '/Images/Products/burger-tom.jpg', 2, 1),
+(N'Mỳ Ý Bò Bằm', N'Mỳ Ý sốt cà chua thịt bò bằm truyền thống', 45000, 40, '/Images/Products/my-y.jpg', 3, 1),
+(N'Pizza Pepperoni', N'Pizza xúc xích cay kiểu Mỹ', 120000, 30, '/Images/Products/pizza-pep.jpg', 4, 1),
+(N'Pizza Phô Mai', N'Pizza 4 loại phô mai hảo hạng', 110000, 25, '/Images/Products/pizza-cheese.jpg', 4, 1),
+(N'Pepsi Tươi', N'Nước ngọt có ga ly lớn', 15000, 200, '/Images/Products/pepsi.jpg', 5, 1),
+(N'Trà Đào Cam Sả', N'Trà đào thanh mát giải nhiệt', 30000, 100, '/Images/Products/tra-dao.jpg', 5, 1),
+(N'Kem Vani', N'Kem tươi vị vani ốc quế', 10000, 150, '/Images/Products/ice-cream.jpg', 6, 1),
+(N'Khoai Tây Chiên', N'Khoai tây chiên giòn rắc muối', 25000, 100, '/Images/Products/french-fries.jpg', 7, 1),
+(N'Cơm Gà Sốt Đậu', N'Cơm trắng ăn kèm gà sốt đậu Hàn Quốc', 40000, 50, '/Images/Products/com-ga.jpg', 8, 1),
+(N'Gà Viên Popcorn', N'Gà viên chiên giòn lắc phô mai', 35000, 80, '/Images/Products/popcorn.jpg', 7, 1),
+(N'Bánh Tart Trứng', N'Bánh trứng nướng nóng hổi', 18000, 60, '/Images/Products/tart.jpg', 6, 1),
+(N'Combo Big Party', N'6 Gà rán + 3 Burger + 3 Nước', 299000, 20, '/Images/Products/big-party.jpg', 9, 1);
 
--- 2. Thêm Sản Phẩm (Products)
--- Lưu ý: Tạo 1 món sắp hết hàng (SoLuongTon < 10) để test cảnh báo kho
-INSERT INTO SanPham (TenSanPham, MoTa, GiaTien, SoLuongTon, MaLoaiSP, TrangThai, HinhAnh) VALUES 
-(N'Burger Bò Phô Mai', N'Bò nướng lửa hồng kẹp phô mai tan chảy', 65000, 50, 1, 1, 'burger-bo.jpg'),
-(N'Burger Gà Giòn', N'Gà chiên giòn rụm với sốt mayonnaise', 55000, 40, 1, 1, 'burger-ga.jpg'),
-(N'Pizza Hải Sản', N'Tôm, mực, thanh cua và phô mai mozzarella', 150000, 20, 2, 1, 'pizza-hai-san.jpg'),
-(N'Pizza Xúc Xích', N'Xúc xích pepperoni cay nồng', 130000, 8, 2, 1, 'pizza-pepperoni.jpg'), -- Món này tồn kho ít (8)
-(N'Gà Rán Cay (3 miếng)', N'Gà tẩm bột ớt cay nồng', 85000, 100, 3, 1, 'ga-ran.jpg'),
-(N'Coca Cola Tươi', N'Ly lớn sảng khoái', 20000, 200, 4, 1, 'coke.jpg'),
-(N'Khoai Tây Chiên', N'Khoai tây chiên vàng giòn', 30000, 150, 5, 1, 'fries.jpg');
+-- 3. Insert KHÁCH HÀNG (10 dòng)
+-- Mật khẩu giả định là '123456' (đã mã hóa MD5/BCrypt ví dụ)
+INSERT INTO KhachHang (HoTen, TenDangNhap, Email, SoDienThoai, DiaChi, MatKhau) VALUES
+(N'Nguyễn Văn A', 'user01', 'nguyenvana@gmail.com', '0901234567', N'123 Lê Lợi, Q1, HCM', '123'),
+(N'Trần Thị B', 'user02', 'tranthib@gmail.com', '0901234568', N'456 Nguyễn Huệ, Q1, HCM', '123'),
+(N'Lê Văn C', 'user03', 'levanc@gmail.com', '0901234569', N'789 Điện Biên Phủ, BT, HCM', '123'),
+(N'Phạm Thị D', 'user04', 'phamthid@gmail.com', '0901234570', N'12 CMT8, Q3, HCM', '123'),
+(N'Hoàng Văn E', 'user05', 'hoangvane@gmail.com', '0901234571', N'34 Võ Văn Tần, Q3, HCM', '123'),
+(N'Đỗ Thị F', 'user06', 'dothif@gmail.com', '0901234572', N'56 Pasteur, Q1, HCM', '123'),
+(N'Ngô Văn G', 'user07', 'ngovang@gmail.com', '0901234573', N'78 Hai Bà Trưng, Q1, HCM', '123'),
+(N'Bùi Thị H', 'user08', 'buithih@gmail.com', '0901234574', N'90 Lê Duẩn, Q1, HCM', '123'),
+(N'Vũ Văn I', 'user09', 'vuvani@gmail.com', '0901234575', N'11 Nguyễn Thị Minh Khai, Q1', '123'),
+(N'Đinh Thị K', 'user10', 'dinhthik@gmail.com', '0901234576', N'22 Lý Tự Trọng, Q1, HCM', '123');
 
--- 3. Thêm Khách Hàng (Users)
-INSERT INTO KhachHang (HoTen, TenDangNhap, Email, MatKhau, DiaChi, NgayTao) VALUES 
-(N'Nguyễn Văn A', 'user1', 'nguyenvana@gmail.com', '123456', N'123 Lê Lợi, TP.HCM', GETDATE()),
-(N'Trần Thị B', 'user2', 'tranthib@gmail.com', '123456', N'456 Nguyễn Huệ, TP.HCM', GETDATE()),
-(N'Lê Văn C', 'user3', 'levanc@gmail.com', '123456', N'789 Hai Bà Trưng, Hà Nội', GETDATE()-5);
+-- 4. Insert NHÂN VIÊN (5 dòng: 1 Admin, 2 Duyệt, 2 Giao)
+INSERT INTO NhanVien (HoTen, TenDangNhap, Email, SoDienThoai, MatKhau, QuyenSuDung) VALUES
+(N'Nhân Viên Duyệt 1', 'DH-duyet01', 'duyet1@fastfood.com', '0988888881', '123', 'NV Duyệt'),
+(N'Nhân Viên Duyệt 2', 'DH-duyet02', 'duyet2@fastfood.com', '0988888882', '123', 'NV Duyệt'),
+(N'Shipper Hùng', 'GH-giao01', 'hungshipper@fastfood.com', '0977777771', '123', 'NV Giao hàng'),
+(N'Shipper Tuấn', 'GH-giao02', 'tuanshipper@fastfood.com', '0977777772', '123', 'NV Giao hàng');
 
--- 4. Thêm Nhân Viên (Staff/Admin)
-INSERT INTO NhanVien (HoTen, TenDangNhap, Email, MatKhau, QuyenSuDung, TrangThai) VALUES 
-(N'Nhân viên duyet hàng 1', 'duyethang1', 'duyethang1@fastfood.com', '123', N'NV Duyệt', 1),
-(N'Nhân Viên Giao Hàng 1', 'giaohang1', 'giaohang1@fastfood.com', '123', N'NV Giao hàng', 1);
+-- 5. Insert HÓA ĐƠN (10 dòng - Đủ các trạng thái)
+INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien, DiaChiGiao, PhuongThucThanhToan) VALUES
+('DH20231025001', '2023-10-25 10:00:00', N'Hoàn tất', 1, 150000, N'123 Lê Lợi, Q1', 'COD'),
+('DH20231025002', '2023-10-25 11:30:00', N'Hoàn tất', 2, 79000, N'456 Nguyễn Huệ, Q1', 'MaQR'),
+('DH20231026001', '2023-10-26 09:15:00', N'Đang giao', 3, 220000, N'789 Điện Biên Phủ', 'COD'),
+('DH20231026002', '2023-10-26 12:00:00', N'Chờ duyệt', 4, 55000, N'12 CMT8, Q3', 'COD'),
+('DH20231026003', '2023-10-26 12:30:00', N'Đã hủy', 5, 120000, N'34 Võ Văn Tần', 'MaQR'),
+('DH20231027001', '2023-10-27 18:00:00', N'Hoàn tất', 1, 300000, N'123 Lê Lợi, Q1', 'MaQR'),
+('DH20231027002', '2023-10-27 19:30:00', N'Chờ duyệt', 6, 45000, N'56 Pasteur, Q1', 'COD'),
+('DH20231028001', '2023-10-28 08:00:00', N'Đang giao', 7, 85000, N'78 Hai Bà Trưng', 'COD'),
+('DH20231028002', '2023-10-28 10:00:00', N'Hoàn tất', 8, 150000, N'90 Lê Duẩn, Q1', 'MaQR'),
+('DH20231028003', '2023-10-28 11:00:00', N'Chờ duyệt', 9, 60000, N'11 NTMK, Q1', 'COD');
 
--- 5. Thêm Phản Hồi (Feedbacks)
-INSERT INTO LienHe (HoTen, Email, ChuDe, NoiDung, TrangThai, NgayTao) VALUES 
-(N'Nguyễn Văn A', 'nguyenvana@gmail.com', N'Khen ngợi', N'Món ăn rất ngon, giao hàng nhanh!', 1, GETDATE()),
-(N'Trần Thị B', 'tranthib@gmail.com', N'Góp ý', N'Nên thêm nhiều tương ớt hơn.', 0, GETDATE()-1);
+-- 6. Insert CHI TIẾT HÓA ĐƠN (Tương ứng với các hóa đơn trên)
+INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES
+(1, 1, 2, 35000), (1, 2, 1, 79000), -- Đơn 1
+(2, 2, 1, 79000), -- Đơn 2
+(3, 6, 1, 120000), (3, 8, 2, 15000), -- Đơn 3
+(4, 3, 1, 55000), -- Đơn 4
+(5, 7, 1, 110000), -- Đơn 5
+(6, 15, 1, 299000), -- Đơn 6
+(7, 5, 1, 45000), -- Đơn 7
+(8, 1, 1, 35000), (8, 11, 2, 25000), -- Đơn 8
+(9, 6, 1, 120000), (9, 8, 2, 15000), -- Đơn 9
+(10, 4, 1, 60000); -- Đơn 10
 
--- 6. Thêm Hóa Đơn (Orders) - QUAN TRỌNG CHO REPORT
--- Chúng ta sẽ tạo đơn hàng rải rác trong 7 ngày qua
+-- 7. Insert LIÊN HỆ (10 dòng)
+INSERT INTO LienHe (HoTen, Email, ChuDe, NoiDung, TrangThai) VALUES
+(N'Nguyễn Văn A', 'a@gmail.com', N'Góp ý món ăn', N'Gà rán hôm nay hơi mặn', 1),
+(N'Trần Thị B', 'b@gmail.com', N'Khen ngợi', N'Nhân viên giao hàng rất thân thiện', 1),
+(N'Lê Văn C', 'c@gmail.com', N'Khiếu nại', N'Giao hàng trễ 30 phút', 0),
+(N'Phạm Thị D', 'd@gmail.com', N'Hỏi giá', N'Combo 5 người giá bao nhiêu?', 0),
+(N'Hoàng Văn E', 'e@gmail.com', N'Đặt tiệc', N'Tôi muốn đặt 50 suất cho công ty', 0),
+(N'User F', 'f@gmail.com', N'Quên mật khẩu', N'Làm sao lấy lại mật khẩu?', 1),
+(N'User G', 'g@gmail.com', N'Góp ý Web', N'Website load hơi chậm', 0),
+(N'User H', 'h@gmail.com', N'Món mới', N'Khi nào có món gà sốt cay?', 0),
+(N'User I', 'i@gmail.com', N'Khuyến mãi', N'Chương trình mua 1 tặng 1 còn không?', 1),
+(N'User K', 'k@gmail.com', N'Tuyển dụng', N'Shop có tuyển shipper không?', 0);
 
--- Đơn 1: Hôm nay (Hoàn tất) -> Sẽ tính vào Doanh thu hôm nay
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-001', GETDATE(), N'Hoàn tất', 1, 150000);
+-- 8. Insert GIỎ HÀNG (Giả lập khách đang chọn món)
+INSERT INTO GioHang (MaKhachHang, MaSanPham, SoLuong) VALUES
+(1, 3, 2),
+(1, 8, 2),
+(2, 15, 1),
+(3, 5, 1);
 
--- Đơn 2: Hôm nay (Chờ duyệt) -> Sẽ hiện số 1 ở ô "Đơn chờ duyệt"
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-002', GETDATE(), N'Chờ duyệt', 2, 85000);
-
--- Đơn 3: Hôm qua (Hoàn tất)
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-003', GETDATE()-1, N'Hoàn tất', 3, 200000);
-
--- Đơn 4: Hôm qua (Hoàn tất)
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-004', GETDATE()-1, N'Hoàn tất', 1, 55000);
-
--- Đơn 5: 3 Ngày trước (Hoàn tất)
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-005', GETDATE()-3, N'Hoàn tất', 2, 300000);
-
--- Đơn 6: 5 Ngày trước (Hoàn tất)
-INSERT INTO HoaDon (SoHoaDon, NgayDatHang, TinhTrang, MaKhachHang, TongTien) VALUES 
-('ORD-006', GETDATE()-5, N'Hoàn tất', 3, 100000);
-
--- 7. Thêm Chi Tiết Hóa Đơn (Để test Top Sản Phẩm Bán Chạy)
--- Giả sử: 
--- ID 1: Burger Bò (65k)
--- ID 2: Burger Gà (55k)
--- ID 3: Pizza Hải Sản (150k)
--- ID 5: Gà Rán (85k)
-
--- Chi tiết cho Đơn 1 (150k) = 1 Pizza Hải Sản
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES (1, 3, 1, 150000);
-
--- Chi tiết cho Đơn 2 (85k) = 1 Gà Rán
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES (2, 5, 1, 85000);
-
--- Chi tiết cho Đơn 3 (200k) = 1 Pizza Hải Sản + 1 Burger Gà (Gà bán chạy)
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES 
-(3, 3, 1, 150000),
-(3, 2, 1, 55000);
-
--- Chi tiết cho Đơn 4 (55k) = 1 Burger Gà (Gà bán chạy lần 2)
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES (4, 2, 1, 55000);
-
--- Chi tiết cho Đơn 5 (300k) = 2 Pizza Hải Sản (Pizza bán chạy nhất về doanh thu)
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES (5, 3, 2, 150000);
-
--- Chi tiết cho Đơn 6 (100k) = 5 Coca (Bán chạy nhất về số lượng)
-INSERT INTO ChiTietHoaDon (MaHoaDon, MaSanPham, SoLuong, DonGia) VALUES (6, 6, 5, 20000);
-
+-- 9. Insert THANH TOÁN (Lịch sử thanh toán cho các đơn Hoàn tất)
+INSERT INTO ThanhToan (MaHoaDon, SoTien, PhuongThuc, GhiChu) VALUES
+(1, 150000, 'COD', N'Đã thu tiền mặt'),
+(2, 79000, 'MaQR', N'Chuyển khoản VCB...'),
+(6, 300000, 'MaQR', N'Chuyển khoản MOMO...'),
+(9, 150000, 'MaQR', N'Chuyển khoản BIDV...');
 GO
