@@ -58,7 +58,7 @@ The system serves two main purposes:
 
 <img src="./Images/ScreenShot/localhost_44341_Report.png" alt="Demo Img1"/>
 
-*See more in the Images/ScreenShot folder.*
+*See more demo images in the Images/ScreenShot folder.*
 ---
 
 
