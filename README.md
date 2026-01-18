@@ -27,23 +27,41 @@ The system serves two main purposes:
 <div style="display: flex; gap: 10px;">
   
 </div>
+
+<img src="./Images/ScreenShot/localhost_44341_Login_DangKy.png" alt="Demo Img1"/>
+
 <img src="./Images/ScreenShot/localhost_44341_Login.png" alt="Demo Img1"/>
+
 <img src="./Images/ScreenShot/localhost_44341_.png" alt="Demo Img2"/>
+
 <img src="./Images/ScreenShot/localhost_44341_Admin_Default.png" alt="Demo Img3"/>
 
 ### Home Page & Menu
 
-> *[Place your Home Page screenshot here]*
+<img src="./Images/ScreenShot/localhost_44341_Menu.png" alt="Demo Img1"/>
+
+<img src="./Images/ScreenShot/localhost_44341_Home_About.png" alt="Demo Img1"/>
+
+<img src="./Images/ScreenShot/localhost_44341_Contact.png" alt="Demo Img1"/>
 
 ### Ordering Process & Cart
 
-> *[Place your Cart/Ordering screenshot here]*
+<img src="./Images/ScreenShot/localhost_44341_Cart.png" alt="Demo Img1"/>
+
+<img src="./Images/ScreenShot/localhost_44341_OrderUser_Checkout.png" alt="Demo Img1"/>
+
+<img src="./Images/ScreenShot/localhost_44341_User_Invoice.png" alt="Demo Img1"/>
 
 ### Admin Dashboard & Order Management
 
-> *[Place your Admin Dashboard screenshot here]*
+<img src="./Images/ScreenShot/localhost_44341_Login4.png" alt="Demo Img1"/>
 
+<img src="./Images/ScreenShot/localhost_44341_Report.png" alt="Demo Img1"/>
+
+*See more in the Images/ScreenShot folder.*
 ---
+
+
 
 ## 🚀 Key Features
 
