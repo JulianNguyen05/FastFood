@@ -25,9 +25,9 @@ The system serves two main purposes:
 ## 📸 Project Demo
 
 <div style="display: flex; gap: 10px;">
-  <img src="./Images/ScreenShot/localhost_44341_Login.png" alt="Demo Img1"/>
+  
 </div>
-
+<img src="./Images/ScreenShot/localhost_44341_Login.png" alt="Demo Img1"/>
 <img src="./Images/ScreenShot/localhost_44341_.png" alt="Demo Img2"/>
 <img src="./Images/ScreenShot/localhost_44341_Admin_Default.png" alt="Demo Img3"/>
 
