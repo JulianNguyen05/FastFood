@@ -2,7 +2,7 @@
 
 # 🍔 FastFood — Hệ Thống Quản Lý Nhà Hàng Thức Ăn Nhanh
 
-[![Demo Video](https://img.shields.io/badge/▶%20Xem%20Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](#)
+[![Demo Video](https://img.shields.io/badge/▶%20Xem%20Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/r487ENaVCAM)
 
 ---
 
